@@ -1,0 +1,198 @@
+import 'package:flutter/material.dart';
+import 'package:konek2move/ui/profile_page/change_password_page/change_password_screen.dart';
+import 'package:konek2move/utils/app_colors.dart';
+import 'package:konek2move/utils/navigation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String name = '';
+  String email = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInfo();
+  }
+
+  Future<void> _loadInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      name = prefs.getString("first_name") ?? "Rider Name";
+      email = prefs.getString("email") ?? "email@example.com";
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _buildPromoCard(),
+          const SizedBox(height: 24),
+          _buildSectionTitle("Account settings"),
+          const SizedBox(height: 8),
+          _buildSettingsCard(),
+        ],
+      ),
+    );
+  }
+
+  // ================= PROMO CARD =================
+  Widget _buildPromoCard() {
+    return Card(
+      color: Colors.white,
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    "Boost your account",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    "Complete your profile to get more delivery requests.",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              Icons.trending_up,
+              size: 36,
+              color: AppColors.primary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ================= SECTION TITLE =================
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: AppColors.textPrimary,
+      ),
+    );
+  }
+
+  // ================= SETTINGS CARD =================
+  Widget _buildSettingsCard() {
+    return Card(
+      color: Colors.white,
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          _buildSettingsTile(
+            icon: Icons.person_outlined,
+            title: "Personal information",
+            onTap: () {},
+          ),
+          _divider(),
+          _buildSettingsTile(
+            icon: Icons.lock_outlined,
+            title: "Change password",
+            onTap: () { Navigator.pushReplacement(
+      context,
+      SlideFadeRoute(page: const ChangePasswordScreen()),
+    );},
+          ),
+          _divider(),
+          _buildSettingsTile(
+            icon: Icons.notifications_none_outlined,
+            title: "Notifications",
+            onTap: () {},
+          ),
+          _divider(),
+          _buildSettingsTile(
+            icon: Icons.fingerprint_outlined,
+            title: "Biometrics",
+            onTap: () {},
+          ),
+          _divider(),
+          _buildSettingsTile(
+            icon: Icons.help_outline_outlined,
+            title: "Help & Support",
+            onTap: () {},
+          ),
+          _divider(),
+          _buildSettingsTile(
+            icon: Icons.logout_outlined,
+            title: "Logout",
+            isLogout: true,
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _divider() {
+    return const Divider(
+      height: 1,
+      thickness: 1,
+      color: AppColors.border,
+    );
+  }
+
+  Widget _buildSettingsTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool isLogout = false,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isLogout ? AppColors.secondaryRed : AppColors.textPrimary,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14.5,
+          color: isLogout
+              ? AppColors.secondaryRed
+              : AppColors.textPrimary,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      trailing: const Icon(
+        Icons.chevron_right,
+        color: AppColors.textSecondary,
+      ),
+      onTap: onTap,
+    );
+  }
+}
