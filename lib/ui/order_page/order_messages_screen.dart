@@ -67,8 +67,6 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
         _messages = response.data ?? [];
         _isLoading = false;
       });
-
-      // _scrollToBottom();
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -350,7 +348,8 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
                         ),
                       )
                     : ListView.builder(
-                        reverse: false,
+                        reverse:
+                            true, // ← Reverse the list to show latest at bottom
                         padding: EdgeInsets.only(
                           left: 16,
                           right: 16,
@@ -359,7 +358,8 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
                         ),
                         itemCount: _messages.length,
                         itemBuilder: (context, index) {
-                          final msg = _messages[index];
+                          final msg = _messages[_messages.length - 1 - index];
+                          // ← Reverse indexing so newest message is at bottom
                           final isSender =
                               msg.senderType == widget.currentUserType;
 

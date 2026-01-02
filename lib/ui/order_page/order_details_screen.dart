@@ -363,7 +363,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       final chatId = widget.order.chat?.id;
                       final orderNo = widget.order.orderNo.toString();
 
-                      Navigator.pushReplacement(
+                      Navigator.push(
                         context,
                         SlideFadeRoute(
                           page: OrderMessagesScreen(
