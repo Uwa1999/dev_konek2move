@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:konek2move/services/provider_services.dart';
 import 'package:konek2move/utils/app_colors.dart';
+import 'package:konek2move/widgets/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 
 /// 🌍 GLOBAL NAVIGATOR KEY (REQUIRED FOR GLOBAL DIALOGS)
@@ -49,13 +50,12 @@ class _InternetDialogListenerState extends State<InternetDialogListener> {
             _closeInternetDialogs(ctx);
             _activeDialog = _InternetDialogType.none;
 
-            ScaffoldMessenger.of(ctx).showSnackBar(
-              const SnackBar(
-                content: Text("Internet connected"),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: AppColors.primary,
-                duration: Duration(seconds: 2),
-              ),
+            showAppSnackBar(
+              icon: Icons.check_circle_rounded,
+              context,
+              title: "Internet Access",
+              message: "Internet Connected",
+              isSuccess: true,
             );
             return;
           }
@@ -97,7 +97,7 @@ class _InternetDialogListenerState extends State<InternetDialogListener> {
               context: ctx,
               title: "Limited Internet Access",
               message:
-              "You're connected to a network, but the internet is currently unavailable.",
+                  "You're connected to a network, but the internet is currently unavailable.",
               icon: Icons.signal_wifi_connected_no_internet_4_rounded,
               color: AppColors.secondaryOrange,
               buttonText: "Retry",
@@ -205,29 +205,29 @@ class _InternetDialogListenerState extends State<InternetDialogListener> {
                         onPressed: isLoading
                             ? null
                             : () async {
-                          if (onRetry == null) return;
+                                if (onRetry == null) return;
 
-                          safeSetState(() => isLoading = true);
-                          await onRetry();
-                          safeSetState(() => isLoading = false);
-                        },
+                                safeSetState(() => isLoading = true);
+                                await onRetry();
+                                safeSetState(() => isLoading = false);
+                              },
                         child: isLoading
                             ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
                             : Text(
-                          buttonText,
-                          style: const TextStyle(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
+                                buttonText,
+                                style: const TextStyle(
+                                  fontSize: 15.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -239,5 +239,4 @@ class _InternetDialogListenerState extends State<InternetDialogListener> {
       },
     ).then((_) => dialogClosed = true);
   }
-
 }

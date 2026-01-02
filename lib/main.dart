@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:konek2move/services/provider_services.dart';
-import 'package:konek2move/ui/login_page/login_screen.dart';
-import 'package:konek2move/ui/main_screen.dart';
 import 'package:konek2move/ui/splash_page/splash_screen.dart';
 import 'package:konek2move/utils/internet_connection.dart';
 import 'package:provider/provider.dart';

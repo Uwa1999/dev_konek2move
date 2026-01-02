@@ -205,13 +205,13 @@ Future<void> showCustomDialog({
                           borderRadius: BorderRadius.circular(28),
                         ),
                       ),
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                        safeSetState(() => isLoading = true);
-
+                      onPressed: () async {
                         if (onButtonPressed != null) {
+                          safeSetState(() => isLoading = true);
+
                           await onButtonPressed();
+
+                          safeSetState(() => isLoading = false);
                         }
 
                         // always close the dialog
@@ -219,26 +219,24 @@ Future<void> showCustomDialog({
                           Navigator.of(dialogContext).pop();
                           dialogClosed = true;
                         }
-
-                        safeSetState(() => isLoading = false);
                       },
-                      child: isLoading
+                      child: (onButtonPressed != null && isLoading)
                           ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
                           : Text(
-                        buttonText,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          fontSize: 15.5,
-                        ),
-                      ),
+                              buttonText,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                fontSize: 15.5,
+                              ),
+                            ),
                     ),
                   ),
                 ],

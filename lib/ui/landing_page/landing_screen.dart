@@ -77,11 +77,11 @@ class _LandingScreenState extends State<LandingScreen>
 
     _slideButtons = Tween(begin: const Offset(0, 0.25), end: Offset.zero)
         .animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.75, 1.0, curve: Curves.easeOut),
-      ),
-    );
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.75, 1.0, curve: Curves.easeOut),
+          ),
+        );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       precacheImage(const AssetImage("assets/images/splash.png"), context);
@@ -112,7 +112,6 @@ class _LandingScreenState extends State<LandingScreen>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: size.height * 0.05), // responsive top space
-
               /// ===== IMAGE =====
               FadeTransition(
                 opacity: _fadeImage,
@@ -156,7 +155,9 @@ class _LandingScreenState extends State<LandingScreen>
                       ),
                       SizedBox(height: size.height * 0.02),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: size.width * 0.04),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: size.width * 0.04,
+                        ),
                         child: Text(
                           "Seamless logistics for delivering CARD Indogrosir orders securely to your store.",
                           textAlign: TextAlign.center,
@@ -184,20 +185,26 @@ class _LandingScreenState extends State<LandingScreen>
                     children: [
                       /// ▶ GET STARTED
                       SizedBox(
-                        height: size.height * 0.07,
+                        height: 52,
                         width: double.infinity,
                         child: OutlinedButton(
                           onPressed: () {
                             Navigator.pushReplacement(
                               context,
-                              SlideFadeRoute(page: const TermsAndConditionScreen()),
+                              SlideFadeRoute(
+                                page: const TermsAndConditionScreen(),
+                              ),
                             );
                           },
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: AppColors.primary),
                             foregroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            padding: const EdgeInsets.symmetric(vertical: 12), // matches Reject button
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                            ), // matches Reject button
                           ),
                           child: Text(
                             "Get Started",
@@ -213,7 +220,7 @@ class _LandingScreenState extends State<LandingScreen>
 
                       /// ▶ SIGN IN
                       SizedBox(
-                        height: size.height * 0.07,
+                        height: 52,
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
@@ -224,8 +231,12 @@ class _LandingScreenState extends State<LandingScreen>
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            padding: const EdgeInsets.symmetric(vertical: 12), // matches Accept button
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                            ), // matches Accept button
                             elevation: 0, // matches Accept button
                           ),
                           child: Text(
@@ -238,7 +249,6 @@ class _LandingScreenState extends State<LandingScreen>
                           ),
                         ),
                       ),
-
                     ],
                   ),
                 ),

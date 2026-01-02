@@ -27,7 +27,10 @@ class _TermsAndConditionScreenState extends State<TermsAndConditionScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () => Navigator.pushReplacement(context, SlideFadeRoute(page: const LandingScreen())),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            SlideFadeRoute(page: const LandingScreen()),
+          ),
         ),
         centerTitle: true,
         title: const Text(
@@ -50,49 +53,49 @@ class _TermsAndConditionScreenState extends State<TermsAndConditionScreen> {
               number: "1.",
               title: "Introduction",
               content:
-              "Welcome to Konek2Move Delivery App. By using our services, you agree to comply with our terms and conditions. Please read carefully before using the app.",
+                  "Welcome to Konek2Move Delivery App. By using our services, you agree to comply with our terms and conditions. Please read carefully before using the app.",
             ),
             _TermsSection(
               number: "2.",
               title: "Account Registration",
               content:
-              "You must provide accurate information when registering an account. You are responsible for maintaining the confidentiality of your account credentials.",
+                  "You must provide accurate information when registering an account. You are responsible for maintaining the confidentiality of your account credentials.",
             ),
             _TermsSection(
               number: "3.",
               title: "Use of Service",
               content:
-              "The app provides delivery services. You agree not to misuse the app for illegal activities or violate any local laws.",
+                  "The app provides delivery services. You agree not to misuse the app for illegal activities or violate any local laws.",
             ),
             _TermsSection(
               number: "4.",
               title: "Payments",
               content:
-              "All payments made through Konek2Move must be authorized and accurate. We are not responsible for unauthorized transactions.",
+                  "All payments made through Konek2Move must be authorized and accurate. We are not responsible for unauthorized transactions.",
             ),
             _TermsSection(
               number: "5.",
               title: "Privacy",
               content:
-              "Your personal data is collected and used according to our Privacy Policy. By using the app, you consent to such data collection.",
+                  "Your personal data is collected and used according to our Privacy Policy. By using the app, you consent to such data collection.",
             ),
             _TermsSection(
               number: "6.",
               title: "Termination",
               content:
-              "We may suspend or terminate your account if you violate these terms or engage in fraudulent activities.",
+                  "We may suspend or terminate your account if you violate these terms or engage in fraudulent activities.",
             ),
             _TermsSection(
               number: "7.",
               title: "Changes to Terms",
               content:
-              "Konek2Move may update these terms at any time. Continued use of the app constitutes acceptance of the updated terms.",
+                  "Konek2Move may update these terms at any time. Continued use of the app constitutes acceptance of the updated terms.",
             ),
             _TermsSection(
               number: "8.",
               title: "Contact Us",
               content:
-              "For any questions or concerns regarding these terms, please contact our support team via the app or email.",
+                  "For any questions or concerns regarding these terms, please contact our support team via the app or email.",
             ),
           ],
         ),
@@ -167,15 +170,18 @@ class _TermsAndConditionScreenState extends State<TermsAndConditionScreen> {
               height: 52,
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: isAccepted ? () {
-                  Navigator.pushReplacement(
-                    context,
-                    SlideFadeRoute(page: const EmailScreen()),
-                  );
-                } : null,
+                onPressed: isAccepted
+                    ? () {
+                        Navigator.pushReplacement(
+                          context,
+                          SlideFadeRoute(page: const EmailScreen()),
+                        );
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                  isAccepted ? AppColors.primary : Colors.grey.shade300,
+                  backgroundColor: isAccepted
+                      ? AppColors.primary
+                      : Colors.grey.shade300,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),

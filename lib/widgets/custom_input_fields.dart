@@ -47,16 +47,17 @@ class CustomInputField extends StatelessWidget {
             ),
             children: required == true
                 ? const [
-              TextSpan(
-                text: " *",
-                style: TextStyle(color: Colors.red),
-              ),
-            ]
+                    TextSpan(
+                      text: " *",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ]
                 : [],
           ),
         ),
         const SizedBox(height: 8),
 
+        /// ----- TEXT FIELD -----
         /// ----- TEXT FIELD -----
         TextField(
           controller: controller,
@@ -71,16 +72,21 @@ class CustomInputField extends StatelessWidget {
           cursorColor: AppColors.primary,
 
           decoration: InputDecoration(
+            isDense: true,
             hintText: hint,
-            hintStyle:  TextStyle(
+            hintStyle: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w400,
               color: Colors.grey.shade500,
             ),
-            /// --- SAME COLORS AS YOUR SAMPLE ---
+
             filled: true,
             fillColor: Colors.grey.shade50,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
 
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
             enabledBorder: OutlineInputBorder(
@@ -92,20 +98,19 @@ class CustomInputField extends StatelessWidget {
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
 
-            /// prefix icon color same as sample? (default)
             prefixIcon: prefixIcon != null
-                ? Icon(prefixIcon, color: Colors.grey.shade600)
+                ? Icon(prefixIcon, color: Colors.grey.shade600, size: 25)
                 : null,
 
-            /// suffix can toggle (like password show/hide)
             suffixIcon: suffixIcon != null
                 ? GestureDetector(
-              onTap: onSuffixTap,
-              child: Icon(
-                suffixIcon,
-                color: Colors.grey.shade600,
-              ),
-            )
+                    onTap: onSuffixTap,
+                    child: Icon(
+                      suffixIcon,
+                      color: Colors.grey.shade600,
+                      size: 25,
+                    ),
+                  )
                 : null,
           ),
         ),

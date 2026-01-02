@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:konek2move/services/api_services.dart';
 import 'package:konek2move/ui/main_screen.dart';
-import 'package:konek2move/ui/profile_page/profile_screen.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:konek2move/utils/navigation.dart';
 import 'package:konek2move/widgets/custom_input_fields.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shimmer/main.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -20,7 +17,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
@@ -49,8 +46,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     setState(() {
       isValid =
           password.isNotEmpty &&
-              confirmPassword.isNotEmpty &&
-              password == confirmPassword;
+          confirmPassword.isNotEmpty &&
+          password == confirmPassword;
     });
   }
 
@@ -61,8 +58,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
     try {
       final api = ApiServices();
-      final response =
-      await api.emailVerification(_emailController.text.trim());
+      final response = await api.emailVerification(
+        _emailController.text.trim(),
+      );
 
       if (!mounted) return;
 
@@ -128,10 +126,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -174,7 +169,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () => Navigator.pushReplacement(context, SlideFadeRoute(page: const MainScreen(index: 3,))),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            SlideFadeRoute(page: const MainScreen(index: 3)),
+          ),
         ),
         centerTitle: true,
         title: const Text(
@@ -189,15 +187,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child:Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               "Please enter your new password. Make sure it is secure and easy for you to remember.",
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 15,
-              ),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
             ),
             const SizedBox(height: 24),
 
@@ -235,8 +230,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
               onSuffixTap: () => setState(
-                    () => _isConfirmPasswordVisible =
-                !_isConfirmPasswordVisible,
+                () => _isConfirmPasswordVisible = !_isConfirmPasswordVisible,
               ),
             ),
           ],
@@ -264,7 +258,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             isThreeButtonNav ? 16 : safeBottom + 14,
           ),
           child: SizedBox(
-            height: 56,
+            height: 52,
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -280,41 +274,39 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
               child: isLoading
                   ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(width: 14),
-                  Text(
-                    "Submitting...",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              )
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 14),
+                        Text(
+                          "Submitting...",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    )
                   : const Text(
-                "Submit",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+                      "Submit",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ),
       ),
     );
   }
-
-
 }

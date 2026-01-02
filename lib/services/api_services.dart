@@ -7,6 +7,176 @@ import 'dns_services.dart';
 import 'model_services.dart';
 
 class ApiServices {
+  Stream<Map<String, dynamic>> listenNotifications() async* {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("jwt_token") ?? "";
+    final userCode = prefs.getString("driver_code") ?? "";
+    final userType = prefs.getString("user_type") ?? "";
+
+    final url = Uri.parse(
+      '${GetDNS.getNotifications()}/api/public/v1/moveapp/notification/listen?user_code=$userCode&user_type=$userType',
+    );
+
+    final client = http.Client();
+
+    try {
+      final request = http.Request('GET', url);
+      request.headers['X-API-KEY'] = GetKEY.getApiKey();
+      request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Accept'] = 'text/event-stream';
+      request.headers['Cache-Control'] = 'no-cache';
+
+      final response = await client.send(request);
+
+      if (response.statusCode != 200) {
+        throw Exception('SSE failed: HTTP ${response.statusCode}');
+      }
+
+      final lines = response.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
+
+      await for (final line in lines) {
+        final clean = line.trim();
+        if (clean.isEmpty) continue;
+        if (!clean.startsWith('data:')) continue;
+
+        final dataPart = clean.substring(5).trim();
+        if (dataPart.isEmpty) continue;
+
+        try {
+          final decoded = json.decode(dataPart);
+          if (decoded is Map<String, dynamic>) {
+            yield decoded;
+          }
+        } catch (e) {
+          print("❌ SSE decode error: $e");
+        }
+      }
+    } catch (e) {
+      print("❌ SSE error: $e");
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<ChatMessageResponse> getChatMessages(int chatId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token") ?? "";
+
+      final Uri url = Uri.parse(
+        '${GetDNS.getOttokonekHestia()}/api/private/v1/moveapp/chat/$chatId/messages',
+      );
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      print(chatId);
+      if (response.statusCode == 200) {
+        return ChatMessageResponse.fromJson(jsonDecode(response.body));
+      }
+      if (response.statusCode == 500 || response.statusCode == 503) {
+        throw Exception("Server is down right now. Please try again later.");
+      }
+
+      throw Exception("Request error: ${response.statusCode}");
+    } catch (e) {
+      throw Exception("Unable to fetch message. $e");
+    }
+  }
+
+  Future<ChatMessageResponse> sendChatMessage({
+    required int chatId,
+    required String orderNo,
+    required String message,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token") ?? "";
+
+      final Uri url = Uri.parse(
+        '${GetDNS.getOttokonekHestia()}/api/private/v1/moveapp/chat/$chatId/message',
+      );
+
+      var request = http.MultipartRequest("POST", url);
+
+      request.fields['message'] = message;
+      request.fields['order_no'] = orderNo;
+      request.fields['message_type'] = "text";
+
+      // Auth header
+      request.headers['Authorization'] = 'Bearer $token';
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> decodedData = jsonDecode(response.body);
+        return ChatMessageResponse.fromJson(decodedData);
+      }
+      if (response.statusCode == 500 || response.statusCode == 503) {
+        throw Exception("Server is down right now. Please try again later.");
+      }
+
+      throw Exception("Request error: ${response.statusCode}");
+    } catch (e) {
+      throw Exception("Unable to fetch orders. $e");
+    }
+  }
+
+  Future<ChatMessageResponse> uploadChatImage({
+    required int chatId,
+    required String orderNo,
+    required File file,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String token = prefs.getString("jwt_token") ?? "";
+
+      final Uri url = Uri.parse(
+        '${GetDNS.getOttokonekHestia()}/api/private/v1/moveapp/chat/$chatId/upload',
+      );
+
+      var request = http.MultipartRequest('POST', url);
+
+      request.fields['order_no'] = orderNo;
+      request.fields['message_type'] = "file";
+
+      final mimeType = file.path.split('.').last.toLowerCase();
+      final imageType = mimeType == "png" ? "png" : "jpeg";
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          file.path,
+          contentType: http.MediaType("image", imageType),
+        ),
+      );
+
+      // Add Authorization header
+      request.headers['Authorization'] = 'Bearer $token';
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> decoded = jsonDecode(response.body);
+        return ChatMessageResponse.fromJson(decoded);
+      }
+      if (response.statusCode == 500 || response.statusCode == 503) {
+        throw Exception("Server is down right now. Please try again later.");
+      }
+
+      throw Exception("Request error: ${response.statusCode}");
+    } catch (e) {
+      throw Exception("Unable to upload. $e");
+    }
+  }
 
   Future<OrderResponse> signIn(String email, String password) async {
     try {
@@ -18,18 +188,18 @@ class ApiServices {
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: jsonEncode({"email": email, "password": password,}),
+        body: jsonEncode({"email": email, "password": password}),
       );
-print(response.body);
+      print(response.body);
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedData = jsonDecode(response.body);
         return OrderResponse.fromJson(decodedData);
-      }  if (response.statusCode == 500 || response.statusCode == 503) {
+      }
+      if (response.statusCode == 500 || response.statusCode == 503) {
         throw Exception("Server is down right now. Please try again later.");
       }
 
       throw Exception("Request error: ${response.statusCode}");
-
     } catch (e) {
       throw Exception("Unable to fetch orders. $e");
     }
@@ -65,7 +235,6 @@ print(response.body);
       }
 
       throw Exception("Request error: ${response.statusCode}");
-
     } catch (e) {
       throw Exception("Unable to fetch orders. $e");
     }
@@ -73,13 +242,12 @@ print(response.body);
 
   Future<OrderResponse> getOrder({String orderNo = "", String? status}) async {
     try {
-
       final prefs = await SharedPreferences.getInstance();
-    final id = prefs.getString("id") ?? "0";
-    final token = prefs.getString("jwt_token") ?? "";
+      final id = prefs.getString("id") ?? "0";
+      final token = prefs.getString("jwt_token") ?? "";
       final Uri url = Uri.parse(
         '${GetDNS.getOttokonekHestia()}/api/private/v1/moveapp/orders/index'
-            '?driver_id=$id&order_no=$orderNo&status=$status',
+        '?driver_id=$id&order_no=$orderNo&status=$status',
       );
 
       final response = await http.get(
@@ -98,7 +266,6 @@ print(response.body);
       }
 
       throw Exception("Request error: ${response.statusCode}");
-
     } catch (e) {
       throw Exception("Unable to fetch orders. $e");
     }
@@ -139,7 +306,6 @@ print(response.body);
       }
 
       throw Exception("Request error: ${response.statusCode}");
-
     } catch (e) {
       throw Exception("Unable to fetch orders. $e");
     }
@@ -199,7 +365,6 @@ print(response.body);
       }
 
       throw Exception("Proof upload failed: ${response.statusCode}");
-
     } catch (e) {
       throw Exception("Unable to upload proof. $e");
     }
@@ -227,7 +392,6 @@ print(response.body);
       }
 
       throw Exception("Verification failed: ${response.statusCode}");
-
     } catch (e) {
       throw Exception("Unable to verify. $e");
     }
@@ -295,7 +459,6 @@ print(response.body);
       }
 
       throw Exception("Registration failed: ${response.statusCode}");
-
     } catch (e) {
       throw Exception("Unable to register. $e");
     }
@@ -321,7 +484,6 @@ print(response.body);
       }
 
       throw Exception("Registration failed: ${response.statusCode}");
-
     } catch (e) {
       throw Exception("Unable to register. $e");
     }
@@ -354,5 +516,4 @@ print(response.body);
       throw Exception('An error occurred: $e');
     }
   }
-
 }

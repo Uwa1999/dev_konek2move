@@ -51,8 +51,8 @@ class OrderData {
       totalCount: json['totalCount'] ?? 0,
       records: json['records'] != null
           ? (json['records'] as List)
-          .map((e) => OrderRecord.fromJson(e))
-          .toList()
+                .map((e) => OrderRecord.fromJson(e))
+                .toList()
           : [],
       driver: json['driver'] != null ? Driver.fromJson(json['driver']) : null,
       jwtToken: json['jwt_token'] ?? '',
@@ -201,7 +201,9 @@ class OrderRecord {
       createdAt: json['created_at'] ?? '',
       updatedAt: json['updated_at'] ?? '',
       barangayName: json['barangay_name'] ?? '',
-      customer: json['customer'] != null ? Customer.fromJson(json['customer']) : null,
+      customer: json['customer'] != null
+          ? Customer.fromJson(json['customer'])
+          : null,
       driver: json['driver'] != null ? Driver.fromJson(json['driver']) : null,
       chat: json['chat'] != null ? Chat.fromJson(json['chat']) : null,
     );
@@ -392,4 +394,74 @@ class Chat {
       updatedAt: json['updated_at'] ?? '',
     );
   }
+}
+
+class ChatMessageResponse {
+  final String? responseTime;
+  final String? device;
+  final String? retCode;
+  final String? message;
+  final String? error;
+  final List<ChatMessage>? data;
+
+  ChatMessageResponse({
+    this.responseTime,
+    this.device,
+    this.retCode,
+    this.message,
+    this.error,
+    this.data,
+  });
+
+  factory ChatMessageResponse.fromJson(Map<String, dynamic> json) {
+    return ChatMessageResponse(
+      responseTime: json['responseTime'] ?? '',
+      device: json['device'] ?? '',
+      retCode: json['retCode'] ?? '',
+      message: json['message'] ?? '',
+      error: json['error'] ?? '',
+      data: json['data'] != null
+          ? (json['data'] as List).map((e) => ChatMessage.fromJson(e)).toList()
+          : [],
+    );
+  }
+}
+
+class ChatMessage {
+  final int? id;
+  final String? senderType;
+  final String? senderCode;
+  final String? message;
+  final String? attachmentUrl;
+  final String? messageType;
+  final DateTime? createdAt;
+
+  ChatMessage({
+    this.id,
+    this.senderType,
+    this.senderCode,
+    this.message,
+    this.attachmentUrl,
+    this.messageType,
+    this.createdAt,
+  });
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      id: json['id'],
+      senderType: json['sender_type'] ?? '',
+      senderCode: json['sender_code'] ?? '',
+      message: json['message'] ?? '',
+      attachmentUrl: json['attachment_url'] ?? '',
+      messageType: json['message_type'] ?? '',
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'])
+          : null,
+    );
+  }
+
+  /// Helpers for UI
+  bool get isText => messageType == 'text';
+  bool get isImage => messageType == 'image';
+  bool get hasAttachment => attachmentUrl != null && attachmentUrl!.isNotEmpty;
 }

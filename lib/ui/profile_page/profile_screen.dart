@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:konek2move/ui/profile_page/biometrics_page/biometrics_screen.dart';
 import 'package:konek2move/ui/profile_page/change_password_page/change_password_screen.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:konek2move/utils/navigation.dart';
@@ -51,9 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Card(
       color: Colors.white,
       elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -82,11 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            Icon(
-              Icons.trending_up,
-              size: 36,
-              color: AppColors.primary,
-            ),
+            Icon(Icons.trending_up, size: 36, color: AppColors.primary),
           ],
         ),
       ),
@@ -110,9 +105,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Card(
       color: Colors.white,
       elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
           _buildSettingsTile(
@@ -124,10 +117,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildSettingsTile(
             icon: Icons.lock_outlined,
             title: "Change password",
-            onTap: () { Navigator.pushReplacement(
-      context,
-      SlideFadeRoute(page: const ChangePasswordScreen()),
-    );},
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                SlideFadeRoute(page: const ChangePasswordScreen()),
+              );
+            },
           ),
           _divider(),
           _buildSettingsTile(
@@ -139,7 +134,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildSettingsTile(
             icon: Icons.fingerprint_outlined,
             title: "Biometrics",
-            onTap: () {},
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                SlideFadeRoute(page: const BiometricsScreen()),
+              );
+            },
           ),
           _divider(),
           _buildSettingsTile(
@@ -160,11 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _divider() {
-    return const Divider(
-      height: 1,
-      thickness: 1,
-      color: AppColors.border,
-    );
+    return const Divider(height: 1, thickness: 1, color: AppColors.border);
   }
 
   Widget _buildSettingsTile({
@@ -182,16 +178,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title,
         style: TextStyle(
           fontSize: 14.5,
-          color: isLogout
-              ? AppColors.secondaryRed
-              : AppColors.textPrimary,
+          color: isLogout ? AppColors.secondaryRed : AppColors.textPrimary,
           fontWeight: FontWeight.w500,
         ),
       ),
-      trailing: const Icon(
-        Icons.chevron_right,
-        color: AppColors.textSecondary,
-      ),
+      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
       onTap: onTap,
     );
   }
