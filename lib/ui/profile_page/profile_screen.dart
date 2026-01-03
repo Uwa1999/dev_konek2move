@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:konek2move/services/api_services.dart';
+import 'package:konek2move/ui/login_page/login_screen.dart';
 import 'package:konek2move/ui/profile_page/biometrics_page/biometrics_screen.dart';
 import 'package:konek2move/ui/profile_page/change_password_page/change_password_screen.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:konek2move/utils/navigation.dart';
+import 'package:konek2move/widgets/custom_dialog.dart';
+import 'package:konek2move/widgets/custom_snackbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -111,7 +115,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildSettingsTile(
             icon: Icons.person_outlined,
             title: "Personal information",
-            onTap: () {},
+            onTap: () {
+              showAppSnackBar(
+                context,
+                title: "Coming Soon",
+                message: "This feature is currently under development. Stay tuned!",
+                isSuccess: false,
+                icon: Icons.info_outline_rounded,
+              );
+            },
           ),
           _divider(),
           _buildSettingsTile(
@@ -128,7 +140,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildSettingsTile(
             icon: Icons.notifications_none_outlined,
             title: "Notifications",
-            onTap: () {},
+            onTap: () {
+              showAppSnackBar(
+                context,
+                title: "Coming Soon",
+                message: "This feature is currently under development. Stay tuned!",
+                isSuccess: false,
+                icon: Icons.info_outline_rounded,
+              );
+            },
           ),
           _divider(),
           _buildSettingsTile(
@@ -145,15 +165,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildSettingsTile(
             icon: Icons.help_outline_outlined,
             title: "Help & Support",
-            onTap: () {},
+            onTap: () {
+              showAppSnackBar(
+                context,
+                title: "Coming Soon",
+                message: "This feature is currently under development. Stay tuned!",
+                isSuccess: false,
+                icon: Icons.info_outline_rounded,
+              );
+            },
           ),
           _divider(),
           _buildSettingsTile(
             icon: Icons.logout_outlined,
-            title: "Logout",
+            title: "Log out",
             isLogout: true,
-            onTap: () {},
+            onTap: () async {
+              bool isLoggingOut = false;
+
+              showCustomDialog(
+                context: context,
+                title: "Logout?",
+                message: "Are you sure you want to log out?",
+                icon: Icons.logout_rounded,
+                color: Colors.red,
+                buttonText: "Confirm",
+                cancelText: "Cancel",
+                onButtonPressed: () async {
+                  if (isLoggingOut) return;
+                  isLoggingOut = true;
+
+                  try {
+                    final response = await ApiServices.logout();
+
+                    if (!context.mounted) return;
+
+                    Navigator.of(context, rootNavigator: true).pop(); // close dialog
+
+                    if (response.retCode == "202") {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove("jwt_token");
+
+                      Navigator.of(context).pushAndRemoveUntil(
+                        SlideFadeRoute(page: LoginScreen()),
+                            (route) => false,
+                      );
+
+                      showAppSnackBar(
+                        context,
+                        title: "Logged Out",
+                        message: response.message ?? "Successfully logged out",
+                        isSuccess: true,
+                        icon: Icons.check_circle_rounded,
+                      );
+                    } else {
+                      showAppSnackBar(
+                        context,
+                        title: "Logout Failed",
+                        message: response.message ?? "Something went wrong",
+                        isSuccess: false,
+                        icon: Icons.error_rounded,
+                      );
+                    }
+                  } catch (e) {
+                    if (!context.mounted) return;
+
+                    Navigator.of(context, rootNavigator: true).pop();
+
+                    showAppSnackBar(
+                      context,
+                      title: "Something went wrong",
+                      message: "We couldn’t complete your request.",
+                      isSuccess: false,
+                      icon: Icons.error_outline_rounded,
+                    );
+                  } finally {
+                    isLoggingOut = false;
+                  }
+                },
+              );
+            },
           ),
+
         ],
       ),
     );

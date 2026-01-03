@@ -112,7 +112,7 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
@@ -128,6 +128,18 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Colors.black,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x14000000),
+                blurRadius: 10,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
         ),
       ),

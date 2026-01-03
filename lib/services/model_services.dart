@@ -465,3 +465,92 @@ class ChatMessage {
   bool get isImage => messageType == 'image';
   bool get hasAttachment => attachmentUrl != null && attachmentUrl!.isNotEmpty;
 }
+
+class NotificationResponse {
+  final String responseTime;
+  final String device;
+  final String retCode;
+  final String message;
+  final NotificationPage data;
+
+  NotificationResponse({
+    required this.responseTime,
+    required this.device,
+    required this.retCode,
+    required this.message,
+    required this.data,
+  });
+
+  factory NotificationResponse.fromJson(Map<String, dynamic> json) {
+    return NotificationResponse(
+      responseTime: json['responseTime'] ?? "",
+      device: json['device'] ?? "",
+      retCode: json['retCode'] ?? "",
+      message: json['message'] ?? "",
+      data: NotificationPage.fromJson(json['data'] ?? {}),
+    );
+  }
+}
+
+class NotificationPage {
+  final int currentPage;
+  final int totalPages;
+  final int totalCount;
+  final List<NotificationRecord> records;
+
+  NotificationPage({
+    required this.currentPage,
+    required this.totalPages,
+    required this.totalCount,
+    required this.records,
+  });
+
+  factory NotificationPage.fromJson(Map<String, dynamic> json) {
+    return NotificationPage(
+      currentPage: json['currentPage'] ?? 1,
+      totalPages: json['totalPages'] ?? 1,
+      totalCount: json['totalCount'] ?? 0,
+      records: (json['records'] as List<dynamic>? ?? [])
+          .map((e) => NotificationRecord.fromJson(e))
+          .toList(),
+    );
+  }
+}
+
+class NotificationRecord {
+  final int id;
+  final String title;
+  final String body;
+  final String topic;
+  final String createdAt;
+  final bool isRead;
+  final String recipientType;
+  final String recipientCode;
+  final String viewedAt;
+
+  NotificationRecord({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.topic,
+    required this.createdAt,
+    required this.isRead,
+    required this.recipientType,
+    required this.recipientCode,
+    this.viewedAt = "",
+  });
+
+  factory NotificationRecord.fromJson(Map<String, dynamic> json) {
+    return NotificationRecord(
+      id: json['id'] ?? 0,
+      title: json['title'] ?? "",
+      body: json['body'] ?? "",
+      topic: json['topic'] ?? "",
+      createdAt: json['created_at'] ?? "",
+      isRead: json['is_read'] ?? false,
+      recipientType: json['recipient_type'] ?? "",
+      recipientCode: json['recipient_code'] ?? "",
+      viewedAt: json['viewed_at'] ?? "",
+    );
+  }
+}

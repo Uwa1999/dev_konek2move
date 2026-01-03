@@ -164,9 +164,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       backgroundColor: Colors.white,
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
           onPressed: () => Navigator.pushReplacement(
@@ -181,6 +181,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Colors.black,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x14000000),
+                blurRadius: 10,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
         ),
       ),

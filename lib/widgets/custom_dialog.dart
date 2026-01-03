@@ -1,3 +1,4 @@
+//
 // import 'package:flutter/material.dart';
 //
 // Future<void> showCustomDialog({
@@ -11,7 +12,7 @@
 // }) async {
 //   bool dialogClosed = false;
 //
-//   showDialog(
+//   await showDialog(
 //     context: context,
 //     barrierDismissible: false,
 //     barrierColor: Colors.black.withOpacity(0.45),
@@ -83,32 +84,38 @@
 //                           borderRadius: BorderRadius.circular(28),
 //                         ),
 //                       ),
-//                       onPressed: isLoading
-//                           ? null
-//                           : () async {
-//                         if (onButtonPressed == null) return;
+//                       onPressed: () async {
+//                         if (onButtonPressed != null) {
+//                           safeSetState(() => isLoading = true);
 //
-//                         safeSetState(() => isLoading = true);
-//                         await onButtonPressed();
-//                         safeSetState(() => isLoading = false);
+//                           await onButtonPressed();
+//
+//                           safeSetState(() => isLoading = false);
+//                         }
+//
+//                         // always close the dialog
+//                         if (!dialogClosed) {
+//                           Navigator.of(dialogContext).pop();
+//                           dialogClosed = true;
+//                         }
 //                       },
-//                       child: isLoading
+//                       child: (onButtonPressed != null && isLoading)
 //                           ? const SizedBox(
-//                         width: 18,
-//                         height: 18,
-//                         child: CircularProgressIndicator(
-//                           color: Colors.white,
-//                           strokeWidth: 2,
-//                         ),
-//                       )
+//                               width: 18,
+//                               height: 18,
+//                               child: CircularProgressIndicator(
+//                                 color: Colors.white,
+//                                 strokeWidth: 2,
+//                               ),
+//                             )
 //                           : Text(
-//                         buttonText,
-//                         style: const TextStyle(
-//                           fontWeight: FontWeight.w700,
-//                           color: Colors.white,
-//                           fontSize: 15.5,
-//                         ),
-//                       ),
+//                               buttonText,
+//                               style: const TextStyle(
+//                                 fontWeight: FontWeight.w700,
+//                                 color: Colors.white,
+//                                 fontSize: 15.5,
+//                               ),
+//                             ),
 //                     ),
 //                   ),
 //                 ],
@@ -121,7 +128,6 @@
 //   ).then((_) => dialogClosed = true);
 // }
 import 'package:flutter/material.dart';
-
 Future<void> showCustomDialog({
   required BuildContext context,
   required String title,
@@ -130,6 +136,8 @@ Future<void> showCustomDialog({
   required Color color,
   required String buttonText,
   Future<void> Function()? onButtonPressed,
+  String? cancelText, // optional cancel button text
+  VoidCallback? onCancel, // optional cancel callback
 }) async {
   bool dialogClosed = false;
 
@@ -194,50 +202,77 @@ Future<void> showCustomDialog({
 
                   const SizedBox(height: 24),
 
-                  // BUTTON
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                      ),
-                      onPressed: () async {
-                        if (onButtonPressed != null) {
-                          safeSetState(() => isLoading = true);
-
-                          await onButtonPressed();
-
-                          safeSetState(() => isLoading = false);
-                        }
-
-                        // always close the dialog
-                        if (!dialogClosed) {
-                          Navigator.of(dialogContext).pop();
-                          dialogClosed = true;
-                        }
-                      },
-                      child: (onButtonPressed != null && isLoading)
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
+                  // BUTTONS
+                  Row(
+                    children: [
+                      if (cancelText != null)
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              if (onCancel != null) onCancel();
+                              if (!dialogClosed) {
+                                Navigator.of(dialogContext).pop();
+                                dialogClosed = true;
+                              }
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: color),
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(28),
                               ),
-                            )
-                          : Text(
-                              buttonText,
-                              style: const TextStyle(
+                            ),
+                            child: Text(
+                              cancelText,
+                              style: TextStyle(
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: color,
                                 fontSize: 15.5,
                               ),
                             ),
-                    ),
+                          ),
+                        ),
+                      if (cancelText != null) const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                          ),
+                          onPressed: () async {
+                            if (onButtonPressed != null) {
+                              safeSetState(() => isLoading = true);
+                              await onButtonPressed();
+                              safeSetState(() => isLoading = false);
+                            }
+                            if (!dialogClosed) {
+                              Navigator.of(dialogContext).pop();
+                              dialogClosed = true;
+                            }
+                          },
+                          child: (onButtonPressed != null && isLoading)
+                              ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                              : Text(
+                            buttonText,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              fontSize: 15.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

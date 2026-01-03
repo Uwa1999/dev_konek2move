@@ -182,7 +182,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         ],
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
 
                       /// ---------- LOCATION UI ----------
                       const Text(
@@ -274,12 +274,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       /// =========================================================
                       controller.buildActionButton(context),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
 
                       /// --- MORE INFO BELOW ---
                       _buildInfoSection(),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
                       _buildItemsSection(),
                     ],
                   ),

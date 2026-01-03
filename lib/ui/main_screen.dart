@@ -1,8 +1,11 @@
-
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:konek2move/services/api_services.dart';
+import 'package:konek2move/ui/notification_page/notification_screen.dart';
 import 'package:konek2move/ui/profile_page/profile_screen.dart';
+import 'package:konek2move/utils/navigation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,9 +25,12 @@ class _MainScreenState extends State<MainScreen> {
   late int _index;
   String firstName = '';
   String status = '';
+  int unreadCount = 0;
 
   late StreamSubscription<Position> _locationStream;
+  StreamSubscription<Map<String, dynamic>>? _sseSubscription;
 
+  final AudioPlayer _audioPlayer = AudioPlayer();
   final _pages = const [
     HomeScreen(),
     OrderScreen(),
@@ -37,6 +43,8 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _index = widget.index;
     _loadFirstName();
+    fetchUnreadCount();
+    _listenToNotifications();
     // 🚀 preload everything after UI renders — prevents lag on launch
     Future.microtask(() async {
       await _requestRequiredPermissions();
@@ -45,15 +53,12 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-
   // =============================================================
   // 🔔 toast helper
   // =============================================================
   void _toast(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   Future<void> _loadFirstName() async {
@@ -66,6 +71,49 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  Future<void> fetchUnreadCount() async {
+    try {
+      final count = await ApiServices().getNotifUnreadCount();
+      if (mounted) {
+        setState(() => unreadCount = count);
+      }
+    } catch (e) {
+      print("Error fetching unread count: $e");
+    }
+  }
+
+  /// -------------------------------
+  /// 🔔 SSE: listen for incoming notifications
+  /// -------------------------------
+  void _listenToNotifications() {
+    _sseSubscription = ApiServices().listenNotifications().listen((event) {
+      final meta = event['data'];
+      if (meta == null) return;
+
+      final recipientType = meta['recipient_type'];
+      if (recipientType != 'driver') return;
+
+      // Increment unread count
+      if (mounted) {
+        setState(() {
+          unreadCount += 1;
+        });
+      }
+
+      // Play notification sound
+      _playNotificationSound();
+
+      print("🟢 New notification received, unreadCount: $unreadCount");
+    });
+  }
+
+  Future<void> _playNotificationSound() async {
+    try {
+      await _audioPlayer.play(AssetSource('sounds/notification.mp3'));
+    } catch (e) {
+      print("❌ Error playing sound: $e");
+    }
+  }
   // =============================================================
   // 🛑 your required permissions method (copy integrated)
   // =============================================================
@@ -101,8 +149,7 @@ class _MainScreenState extends State<MainScreen> {
   // 🚀 warm GPS to make accept/reject instantly fast
   // =============================================================
   Future<void> _warmUpGPS() async {
-    try {
-    } catch (_) {}
+    try {} catch (_) {}
   }
 
   // =============================================================
@@ -114,13 +161,14 @@ class _MainScreenState extends State<MainScreen> {
         accuracy: LocationAccuracy.low,
         distanceFilter: 50,
       ),
-    ).listen((pos) {
-    });
+    ).listen((pos) {});
   }
 
   @override
   void dispose() {
     _locationStream.cancel();
+    _sseSubscription?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -131,7 +179,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: _HomeAppBar(firstName: firstName, status: status,),
+      appBar: _HomeAppBar(firstName: firstName, status: status, unreadCount: unreadCount,),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 350),
         switchInCurve: Curves.easeOutCubic,
@@ -144,16 +192,10 @@ class _MainScreenState extends State<MainScreen> {
 
           return FadeTransition(
             opacity: animation,
-            child: SlideTransition(
-              position: offsetAnimation,
-              child: child,
-            ),
+            child: SlideTransition(position: offsetAnimation, child: child),
           );
         },
-        child: SizedBox(
-          key: ValueKey(_index),
-          child: _pages[_index],
-        ),
+        child: SizedBox(key: ValueKey(_index), child: _pages[_index]),
       ),
       bottomNavigationBar: _BottomNav(
         currentIndex: _index,
@@ -163,21 +205,29 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-
-
 /* ============================================================
    HOME APP BAR
 ============================================================ */
-class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
+class _HomeAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String firstName;
   final String status;
+  final int unreadCount;
 
-   const _HomeAppBar({required this.firstName, required this.status});
+  const _HomeAppBar({
+    super.key,
+    required this.firstName,
+    required this.status,
+    required this.unreadCount,
+  });
+
+  @override
+  State<_HomeAppBar> createState() => _HomeAppBarState();
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
 
-
+class _HomeAppBarState extends State<_HomeAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -185,8 +235,7 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       scrolledUnderElevation: 0,
       automaticallyImplyLeading: false,
-      toolbarHeight: kToolbarHeight, // 🔥 lock height
-
+      toolbarHeight: kToolbarHeight,
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           color: AppColors.surface,
@@ -194,36 +243,29 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             BoxShadow(
               color: Color(0x14000000),
               blurRadius: 10,
-              offset: Offset(0, 3),
+              offset: Offset(0, 1),
             ),
           ],
         ),
       ),
-
       titleSpacing: 16,
       title: Row(
-        crossAxisAlignment: CrossAxisAlignment.center, // 🔥 keeps inside height
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const CircleAvatar(
-            radius: 20, // 🔥 22 → 20 fits the height exactly like OrderAppBar
+            radius: 20,
             backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=12'),
           ),
           const SizedBox(width: 10),
-
-          const Icon(
-            Icons.location_on,
-            color: AppColors.primary,
-            size: 18,
-          ),
+          const Icon(Icons.location_on, color: AppColors.primary, size: 18),
           const SizedBox(width: 6),
-
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Welcome, $firstName !",
+                  "Welcome, ${widget.firstName} !",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -232,46 +274,65 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                 Text(
-                status,
+                Text(
+                  widget.status,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.primary,
-                  ),
+                  style: TextStyle(fontSize: 12, color: AppColors.primary),
                 ),
               ],
             ),
           ),
         ],
       ),
-
       actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: Stack(
+        IconButton(
+          onPressed: () async {
+            // Open notification screen
+            await Navigator.push(
+              context,
+              SlideFadeRoute(page: const NotificationScreen()),
+            );
+
+            // Optionally refresh unread count when returning
+            if (mounted) setState(() {});
+          },
+          icon: Stack(
+            clipBehavior: Clip.none,
             children: [
               const Icon(
                 Icons.notifications_none,
-                size: 24, // 🔥 26 → 24 matches default AppBar icon size
+                size: 24,
                 color: AppColors.primary,
               ),
-              Positioned(
-                right: 2,
-                top: 2,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.secondaryOrange,
-                    shape: BoxShape.circle,
+              if (widget.unreadCount > 0)
+                Positioned(
+                  right: -1,
+                  top: -1,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    constraints: const BoxConstraints(minWidth: 8, minHeight: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondaryOrange,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        widget.unreadCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
-        ),
+          padding: const EdgeInsets.only(right: 16),
+          constraints: const BoxConstraints(),
+        )
       ],
     );
   }
@@ -284,10 +345,7 @@ class _BottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onChanged;
 
-  const _BottomNav({
-    required this.currentIndex,
-    required this.onChanged,
-  });
+  const _BottomNav({required this.currentIndex, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -304,7 +362,7 @@ class _BottomNav extends StatelessWidget {
               BoxShadow(
                 color: Color(0x14000000),
                 blurRadius: 10,
-                offset: Offset(0, -3),
+                offset: Offset(0, -1),
               ),
             ],
           ),
@@ -359,5 +417,3 @@ class _BottomNav extends StatelessWidget {
     );
   }
 }
-
-

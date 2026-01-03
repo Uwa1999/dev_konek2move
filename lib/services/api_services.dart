@@ -7,6 +7,162 @@ import 'dns_services.dart';
 import 'model_services.dart';
 
 class ApiServices {
+
+  Future<int> getNotifUnreadCount() async {
+    try {
+      final url = Uri.parse(
+        '${GetDNS.getOttokonekHestia()}/api/private/v1/moveapp/notification/unread-count',
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token") ?? "";
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonBody = json.decode(response.body);
+
+        // Check if data exists and has unread_count
+        if (jsonBody['data'] != null &&
+            jsonBody['data']['unread_count'] != null) {
+          return jsonBody['data']['unread_count'] as int;
+        } else {
+          return 0;
+        }
+      } else {
+        print(
+            "getNotifUnreadCount: Unexpected status code ${response.statusCode}");
+        return 0;
+      }
+    } catch (e) {
+      print("getNotifUnreadCount: Exception $e");
+      return 0;
+    }
+  }
+
+  Future<NotificationResponse> getNotifications({int page = 1}) async {
+    try {
+      final url = Uri.parse(
+        '${GetDNS.getOttokonekHestia()}/api/private/v1/moveapp/notification/index?page=$page',
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token") ?? "";
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        return NotificationResponse.fromJson(jsonDecode(response.body));
+      }
+
+      if (response.statusCode == 500 || response.statusCode == 503) {
+        throw Exception("Server is down right now. Please try again later.");
+      }
+
+      throw Exception("Request error: ${response.statusCode}");
+    } catch (e) {
+      throw Exception("Unable to fetch notifications. $e");
+    }
+  }
+
+
+  static Future<OrderResponse> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("jwt_token") ?? "";
+
+    final Uri url = Uri.parse(
+      '${GetDNS.getOttokonekHestia()}/api/private/v1/moveapp/auth/signout',
+    );
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+print(response.body);
+      if (response.statusCode == 200) {
+        return OrderResponse.fromJson(jsonDecode(response.body));
+      }
+      if (response.statusCode == 500 || response.statusCode == 503) {
+        throw Exception("Server is down right now. Please try again later.");
+      }
+
+      throw Exception("Request error: ${response.statusCode}");
+    } catch (e) {
+      throw Exception("Unable to log out. $e");
+    }
+  }
+
+
+  // Stream<Map<String, dynamic>> listenNotifications() async* {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final token = prefs.getString("jwt_token") ?? "";
+  //   final userCode = prefs.getString("driver_code") ?? "";
+  //   final userType = prefs.getString("user_type") ?? "";
+  //
+  //   final url = Uri.parse(
+  //     '${GetDNS.getNotifications()}/api/public/v1/moveapp/notification/listen?user_code=$userCode&user_type=$userType',
+  //   );
+  //
+  //   final client = http.Client();
+  //
+  //   try {
+  //     final request = http.Request('GET', url);
+  //     request.headers['X-API-KEY'] = GetKEY.getApiKey();
+  //     request.headers['Authorization'] = 'Bearer $token';
+  //     request.headers['Accept'] = 'text/event-stream';
+  //     request.headers['Cache-Control'] = 'no-cache';
+  //
+  //     final response = await client.send(request);
+  //
+  //     if (response.statusCode != 200) {
+  //       throw Exception('SSE failed: HTTP ${response.statusCode}');
+  //     }
+  //
+  //     final lines = response.stream
+  //         .transform(utf8.decoder)
+  //         .transform(const LineSplitter());
+  //
+  //     await for (final line in lines) {
+  //       final clean = line.trim();
+  //       if (clean.isEmpty) continue;
+  //       if (!clean.startsWith('data:')) continue;
+  //
+  //       final dataPart = clean.substring(5).trim();
+  //       if (dataPart.isEmpty) continue;
+  //
+  //       try {
+  //         final decoded = json.decode(dataPart);
+  //         if (decoded is Map<String, dynamic>) {
+  //           yield decoded;
+  //         }
+  //       } catch (e) {
+  //         print("❌ SSE decode error: $e");
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print("❌ SSE error: $e");
+  //   } finally {
+  //     client.close();
+  //   }
+  // }
   Stream<Map<String, dynamic>> listenNotifications() async* {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("jwt_token") ?? "";
@@ -47,6 +203,8 @@ class ApiServices {
         try {
           final decoded = json.decode(dataPart);
           if (decoded is Map<String, dynamic>) {
+            // 🔹 Print every SSE response
+            print("📨 SSE data: $decoded");
             yield decoded;
           }
         } catch (e) {
@@ -59,6 +217,7 @@ class ApiServices {
       client.close();
     }
   }
+
 
   Future<ChatMessageResponse> getChatMessages(int chatId) async {
     try {
@@ -76,7 +235,6 @@ class ApiServices {
           'Authorization': 'Bearer $token',
         },
       );
-      print(chatId);
       if (response.statusCode == 200) {
         return ChatMessageResponse.fromJson(jsonDecode(response.body));
       }
