@@ -61,9 +61,8 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
       try {
         authenticated = await _auth.authenticate(
           localizedReason: 'Confirm your identity to enable biometric login',
-          biometricOnly: false,
         );
-      } catch (e) {
+      } catch (_) {
         authenticated = false;
       }
 
@@ -80,20 +79,22 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
       }
 
       await prefs.setBool('biometric_enabled', true);
+
       await showCustomDialog(
         context: context,
         title: "Biometrics Enabled",
         message:
-            "You can now log in securely using your fingerprint or Face ID.",
+        "You can now log in securely using your fingerprint or Face ID.",
         icon: Icons.fingerprint,
         color: AppColors.primary,
         buttonText: "Got it!",
       );
 
-      return true;
+      return true; // ✅ enable succeeded
     } else {
       // Disable without authentication
       await prefs.setBool('biometric_enabled', false);
+
       await showCustomDialog(
         context: context,
         title: "Biometrics Disabled",
@@ -102,9 +103,11 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
         color: AppColors.primary,
         buttonText: "Got it!",
       );
-      return false; // return false because switch should turn off
+
+      return true; // ✅ disable ALSO succeeded
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

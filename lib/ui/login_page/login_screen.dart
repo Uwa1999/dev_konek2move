@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:konek2move/services/api_services.dart';
 import 'package:konek2move/services/model_services.dart';
 import 'package:konek2move/utils/navigation.dart';
@@ -27,6 +28,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool _obscure = true;
   bool _loading = false;
   bool _showBiometric = false;
+  bool _biometricInProgress = false;
 
   late AnimationController _controller;
   late Animation<Offset> _containerSlide;
@@ -63,31 +65,58 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _initPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool("biometric_enabled") ?? false;
+
     if (!mounted) return;
     setState(() => _showBiometric = enabled);
 
-    if (enabled)
-      Future.delayed(const Duration(milliseconds: 200), _biometricLogin);
+    if (!enabled) return;
+
+    final auth = LocalAuthentication();
+
+    final canCheck = await auth.canCheckBiometrics;
+    final available = await auth.getAvailableBiometrics();
+
+    if (!canCheck || available.isEmpty) return;
+
+    // Delay slightly to avoid auth collision with UI
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) _biometricLogin();
+    });
   }
 
   /// BIOMETRIC LOGIN
   Future<void> _biometricLogin() async {
-    final LocalAuthentication auth = LocalAuthentication();
+    if (_biometricInProgress || _loading || !mounted) return;
+
+    _biometricInProgress = true;
+    final auth = LocalAuthentication();
+
     try {
-      final bool didAuthenticate = await auth.authenticate(
+      final isSupported = await auth.isDeviceSupported();
+      final canCheck = await auth.canCheckBiometrics;
+
+      if (!isSupported || !canCheck) return;
+
+      final didAuthenticate = await auth.authenticate(
         localizedReason: 'Login using your biometrics or device PIN',
-        biometricOnly: false,
       );
+
       if (!didAuthenticate) return;
 
       final prefs = await SharedPreferences.getInstance();
       final email = prefs.getString("email");
       final password = prefs.getString("password");
-      if (email == null || password == null) {
-        _showCustomDialog("No saved credentials for biometric login", false);
+
+      if (email == null || password == null || email.isEmpty || password.isEmpty) {
+        await prefs.setBool("biometric_enabled", false);
+        _showCustomDialog(
+          "Biometric login was reset. Please log in normally.",
+          false,
+        );
         return;
       }
 
+      if (!mounted) return;
       setState(() => _loading = true);
 
       final response = await ApiServices().signIn(email, password);
@@ -96,6 +125,7 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() => _loading = false);
 
       if (response.retCode == '201') {
+        // ⚠️ Do NOT overwrite saved credentials here
         await _saveUserData(response);
         Navigator.pushReplacement(
           context,
@@ -103,17 +133,25 @@ class _LoginScreenState extends State<LoginScreen>
         );
       } else {
         _showCustomDialog(
-          response.error ?? response.message ?? "Login failed",
+          response.error ?? response.message ?? "Biometric login failed",
           false,
         );
       }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loading = false);
+    } on PlatformException catch (e) {
+      if (e.code != 'auth_in_progress') {
+        _showCustomDialog(
+          "Biometric authentication failed. Please try again.",
+          false,
+        );
+      }
+    } catch (_) {
       _showCustomDialog(
-        "It looks like you haven't set up biometric login yet. You can enable it in settings for quicker access next time!",
+        "Unable to use biometric login right now.",
         false,
       );
+    } finally {
+      _biometricInProgress = false;
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -123,7 +161,6 @@ class _LoginScreenState extends State<LoginScreen>
     final emailText = _email.text.trim();
     final passwordText = _password.text.trim();
 
-    // Check for empty fields first
     if (emailText.isEmpty && passwordText.isEmpty) {
       _showCustomDialog("Please enter your email and password", false);
       return;
@@ -149,20 +186,20 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _loading = true);
 
     try {
-      final response = await ApiServices().signIn(
-        _email.text.trim(),
-        _password.text.trim(),
-      );
+      final response = await ApiServices().signIn(emailText, passwordText);
+
       if (!mounted) return;
       setState(() => _loading = false);
 
       if (response.retCode == '201') {
-        await _saveUserData(response);
+        // ⚡ Save credentials ONLY for normal login
+        await _saveUserData(response, email: emailText, password: passwordText);
+
         showAppSnackBar(
           icon: Icons.check_circle_rounded,
           context,
           title: "Success",
-          message: response.message!,
+          message: response.message ?? "Login successful",
           isSuccess: true,
         );
         Navigator.pushReplacement(
@@ -182,12 +219,18 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  // josharban455@gmail.com
-  //   Admin123*
-  Future<void> _saveUserData(OrderResponse response) async {
+  Future<void> _saveUserData(
+      OrderResponse response, {
+        String? email,
+        String? password,
+      }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("email", _email.text.trim());
-    await prefs.setString("password", _password.text.trim());
+
+    if (email != null && password != null) {
+      await prefs.setString("email", email);
+      await prefs.setString("password", password);
+    }
+
     await prefs.setString("jwt_token", response.data!.jwtToken!);
     await prefs.setString("first_name", response.data!.driver!.firstName!);
     await prefs.setString("driver_code", response.data!.driver!.driverCode!);
@@ -338,38 +381,38 @@ class _LoginScreenState extends State<LoginScreen>
                           onPressed: _loading ? null : _login,
                           child: _loading
                               ? Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(width: 14),
-                                    Text(
-                                      "Signing in...",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : const Text(
-                                  "Sign In",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
                                 ),
+                              ),
+                              SizedBox(width: 14),
+                              Text(
+                                "Signing in...",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          )
+                              : const Text(
+                            "Sign In",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       Center(
                         child: Text.rich(
                           TextSpan(
@@ -400,16 +443,12 @@ class _LoginScreenState extends State<LoginScreen>
                       if (_showBiometric)
                         Row(
                           children: [
-                            Expanded(
-                              child: Divider(color: Colors.grey.shade300),
-                            ),
+                            Expanded(child: Divider(color: Colors.grey.shade300)),
                             const Padding(
                               padding: EdgeInsets.symmetric(horizontal: 12),
                               child: Text("or"),
                             ),
-                            Expanded(
-                              child: Divider(color: Colors.grey.shade300),
-                            ),
+                            Expanded(child: Divider(color: Colors.grey.shade300)),
                           ],
                         ),
                       if (_showBiometric) const SizedBox(height: 12),
@@ -431,14 +470,12 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ),
                             child: Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.center, // center content
-                              mainAxisSize:
-                                  MainAxisSize.min, // shrink row to content
-                              children: [
-                                const Icon(Icons.fingerprint_rounded, size: 24),
-                                const SizedBox(width: 5),
-                                const Text(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.fingerprint_rounded, size: 24),
+                                SizedBox(width: 5),
+                                Text(
                                   "Log in with Biometrics",
                                   style: TextStyle(
                                     fontSize: 18,

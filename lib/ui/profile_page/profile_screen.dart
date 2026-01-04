@@ -204,12 +204,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     if (response.retCode == "202") {
                       final prefs = await SharedPreferences.getInstance();
+
+                      // ✅ Clear auth token only
                       await prefs.remove("jwt_token");
 
-                      Navigator.of(context).pushAndRemoveUntil(
-                        SlideFadeRoute(page: LoginScreen()),
-                            (route) => false,
-                      );
+                      // ✅ Reset biometric session flag
+                      await prefs.setBool("biometric_in_progress", false);
+
+                      // ✅ Wait one frame before navigation
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          SlideFadeRoute(page: const LoginScreen()),
+                              (route) => false,
+                        );
+                      });
 
                       showAppSnackBar(
                         context,
@@ -244,6 +252,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 },
               );
+
             },
           ),
 

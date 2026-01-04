@@ -63,7 +63,6 @@ class ApiServices {
         },
       );
 
-      print(response.body);
 
       if (response.statusCode == 200) {
         return NotificationResponse.fromJson(jsonDecode(response.body));

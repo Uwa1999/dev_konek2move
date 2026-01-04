@@ -31,6 +31,15 @@ class _MainScreenState extends State<MainScreen> {
   StreamSubscription<Map<String, dynamic>>? _sseSubscription;
 
   final AudioPlayer _audioPlayer = AudioPlayer();
+
+  // =========================
+  // 🔔 SSE STATE
+  // =========================
+  bool _sseActive = false;
+  bool _sseDisposed = false;
+  int _sseRetryCount = 0;
+  static const int _maxSseRetries = 5;
+
   final _pages = const [
     HomeScreen(),
     OrderScreen(),
@@ -42,13 +51,14 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _index = widget.index;
+
     _loadFirstName();
     fetchUnreadCount();
     _listenToNotifications();
-    // 🚀 preload everything after UI renders — prevents lag on launch
+
+    // preload after UI renders
     Future.microtask(() async {
       await _requestRequiredPermissions();
-      await _warmUpGPS();
       _startLocationStream();
     });
   }
@@ -58,67 +68,131 @@ class _MainScreenState extends State<MainScreen> {
   // =============================================================
   void _toast(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg)));
   }
 
   Future<void> _loadFirstName() async {
     final prefs = await SharedPreferences.getInstance();
-    final name = prefs.getString("first_name") ?? "";
-    final stat = prefs.getString("status") ?? "";
     setState(() {
-      firstName = name;
-      status = stat;
+      firstName = prefs.getString("first_name") ?? "";
+      status = prefs.getString("status") ?? "";
     });
   }
 
   Future<void> fetchUnreadCount() async {
     try {
       final count = await ApiServices().getNotifUnreadCount();
-      if (mounted) {
-        setState(() => unreadCount = count);
-      }
+      if (mounted) setState(() => unreadCount = count);
     } catch (e) {
-      print("Error fetching unread count: $e");
+      debugPrint("❌ unread count error: $e");
     }
   }
 
-  /// -------------------------------
-  /// 🔔 SSE: listen for incoming notifications
-  /// -------------------------------
+  // =============================================================
+  // 🔔 SSE CONNECT
+  // =============================================================
   void _listenToNotifications() {
-    _sseSubscription = ApiServices().listenNotifications().listen((event) {
-      final meta = event['data'];
-      if (meta == null) return;
+    if (_sseActive || _sseDisposed) return;
 
-      final recipientType = meta['recipient_type'];
-      if (recipientType != 'driver') return;
+    _sseActive = true;
+    debugPrint("🔌 SSE connecting...");
 
-      // Increment unread count
-      if (mounted) {
-        setState(() {
-          unreadCount += 1;
-        });
-      }
+    _sseSubscription = ApiServices()
+        .listenNotifications()
+        .listen(
+      _onSseEvent,
+      onError: _onSseError,
+      onDone: _onSseDone,
+      cancelOnError: true,
+    );
+  }
 
-      // Play notification sound
-      _playNotificationSound();
+  // =============================================================
+  // 🔔 SSE EVENT
+  // =============================================================
+  void _onSseEvent(Map<String, dynamic> event) {
+    _sseRetryCount = 0; // reset retries on success
 
-      print("🟢 New notification received, unreadCount: $unreadCount");
+    final meta = event['data'];
+    if (meta == null) return;
+
+    final recipientType = meta['recipient_type'];
+    if (recipientType != 'driver') return;
+
+    if (!mounted) return;
+
+    setState(() => unreadCount += 1);
+    _playNotificationSound();
+
+    debugPrint("🟢 SSE event received — unread: $unreadCount");
+  }
+
+  // =============================================================
+  // ❌ SSE ERROR
+  // =============================================================
+  void _onSseError(dynamic error) {
+    debugPrint("❌ SSE error: $error");
+
+    _sseActive = false;
+    _sseSubscription?.cancel();
+    _sseSubscription = null;
+
+    _attemptSseReconnect();
+  }
+
+  // =============================================================
+  // ⚠️ SSE CLOSED
+  // =============================================================
+  void _onSseDone() {
+    debugPrint("⚠️ SSE closed by server");
+
+    _sseActive = false;
+    _sseSubscription?.cancel();
+    _sseSubscription = null;
+
+    _attemptSseReconnect();
+  }
+
+  // =============================================================
+  // 🔄 SSE RECONNECT (EXPONENTIAL BACKOFF)
+  // =============================================================
+  void _attemptSseReconnect() {
+    if (_sseDisposed) return;
+
+    if (_sseRetryCount >= _maxSseRetries) {
+      debugPrint("🛑 SSE max retries reached");
+      return;
+    }
+
+    _sseRetryCount++;
+
+    final delaySeconds = 2 << (_sseRetryCount - 1); // 2,4,8,16,32
+    debugPrint("🔄 SSE reconnect in $delaySeconds sec");
+
+    Future.delayed(Duration(seconds: delaySeconds), () {
+      if (_sseDisposed || _sseActive) return;
+      _listenToNotifications();
     });
   }
 
+  // =============================================================
+  // 🔊 SOUND
+  // =============================================================
   Future<void> _playNotificationSound() async {
     try {
-      await _audioPlayer.play(AssetSource('sounds/notification.mp3'));
+      await _audioPlayer.play(
+        AssetSource('sounds/notification.mp3'),
+      );
     } catch (e) {
-      print("❌ Error playing sound: $e");
+      debugPrint("❌ sound error: $e");
     }
   }
+
   // =============================================================
-  // 🛑 your required permissions method (copy integrated)
+  // 🔐 PERMISSIONS
   // =============================================================
   Future<void> _requestRequiredPermissions() async {
-    // --- LOCATION PERMISSION ---
     LocationPermission locStatus = await Geolocator.checkPermission();
 
     if (locStatus == LocationPermission.denied ||
@@ -126,76 +200,61 @@ class _MainScreenState extends State<MainScreen> {
       locStatus = await Geolocator.requestPermission();
 
       if (locStatus == LocationPermission.denied) {
-        _toast("Location permission is required for delivery tracking");
+        _toast("Location permission required");
       }
       if (locStatus == LocationPermission.deniedForever) {
-        _toast("Location permanently denied. Allow it from app settings.");
+        _toast("Enable location permission in settings");
       }
     }
 
-    // --- CAMERA PERMISSION ---
-    PermissionStatus camStatus = await Permission.camera.status;
-
+    final camStatus = await Permission.camera.request();
     if (!camStatus.isGranted) {
-      camStatus = await Permission.camera.request();
-
-      if (!camStatus.isGranted) {
-        _toast("Camera permission is needed to take proof of delivery photos");
-      }
+      _toast("Camera permission required");
     }
   }
 
-  // =============================================================
-  // 🚀 warm GPS to make accept/reject instantly fast
-  // =============================================================
-  Future<void> _warmUpGPS() async {
-    try {} catch (_) {}
-  }
 
-  // =============================================================
-  // 📡 keep GPS warm in background while app is open
-  // =============================================================
   void _startLocationStream() {
     _locationStream = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.low,
         distanceFilter: 50,
       ),
-    ).listen((pos) {});
+    ).listen((_) {});
   }
 
+  // =============================================================
+  // 🧹 CLEANUP
+  // =============================================================
   @override
   void dispose() {
-    _locationStream.cancel();
+    _sseDisposed = true;
+
     _sseSubscription?.cancel();
+    _locationStream.cancel();
     _audioPlayer.dispose();
+
     super.dispose();
   }
 
   // =============================================================
-  // UI — no changes
+  // UI
   // =============================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: _HomeAppBar(firstName: firstName, status: status, unreadCount: unreadCount,),
+      appBar: _HomeAppBar(
+        firstName: firstName,
+        status: status,
+        unreadCount: unreadCount,
+      ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 350),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) {
-          final offsetAnimation = Tween(
-            begin: const Offset(0, 0.08),
-            end: Offset.zero,
-          ).animate(animation);
-
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(position: offsetAnimation, child: child),
-          );
-        },
-        child: SizedBox(key: ValueKey(_index), child: _pages[_index]),
+        child: SizedBox(
+          key: ValueKey(_index),
+          child: _pages[_index],
+        ),
       ),
       bottomNavigationBar: _BottomNav(
         currentIndex: _index,
@@ -204,6 +263,197 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+// class MainScreen extends StatefulWidget {
+//   final int index;
+//   const MainScreen({super.key, this.index = 0});
+//
+//   @override
+//   State<MainScreen> createState() => _MainScreenState();
+// }
+//
+// class _MainScreenState extends State<MainScreen> {
+//   late int _index;
+//   String firstName = '';
+//   String status = '';
+//   int unreadCount = 0;
+//
+//   late StreamSubscription<Position> _locationStream;
+//   StreamSubscription<Map<String, dynamic>>? _sseSubscription;
+//
+//   final AudioPlayer _audioPlayer = AudioPlayer();
+//   final _pages = const [
+//     HomeScreen(),
+//     OrderScreen(),
+//     Placeholder(),
+//     ProfileScreen(),
+//   ];
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     _index = widget.index;
+//     _loadFirstName();
+//     fetchUnreadCount();
+//     _listenToNotifications();
+//     // 🚀 preload everything after UI renders — prevents lag on launch
+//     Future.microtask(() async {
+//       await _requestRequiredPermissions();
+//       await _warmUpGPS();
+//       _startLocationStream();
+//     });
+//   }
+//
+//   // =============================================================
+//   // 🔔 toast helper
+//   // =============================================================
+//   void _toast(String msg) {
+//     if (!mounted) return;
+//     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+//   }
+//
+//   Future<void> _loadFirstName() async {
+//     final prefs = await SharedPreferences.getInstance();
+//     final name = prefs.getString("first_name") ?? "";
+//     final stat = prefs.getString("status") ?? "";
+//     setState(() {
+//       firstName = name;
+//       status = stat;
+//     });
+//   }
+//
+//   Future<void> fetchUnreadCount() async {
+//     try {
+//       final count = await ApiServices().getNotifUnreadCount();
+//       if (mounted) {
+//         setState(() => unreadCount = count);
+//       }
+//     } catch (e) {
+//       print("Error fetching unread count: $e");
+//     }
+//   }
+//
+//   /// -------------------------------
+//   /// 🔔 SSE: listen for incoming notifications
+//   /// -------------------------------
+//   void _listenToNotifications() {
+//     _sseSubscription = ApiServices().listenNotifications().listen((event) {
+//       final meta = event['data'];
+//       if (meta == null) return;
+//
+//       final recipientType = meta['recipient_type'];
+//       if (recipientType != 'driver') return;
+//
+//       // Increment unread count
+//       if (mounted) {
+//         setState(() {
+//           unreadCount += 1;
+//         });
+//       }
+//
+//       // Play notification sound
+//       _playNotificationSound();
+//
+//       print("🟢 New notification received, unreadCount: $unreadCount");
+//     });
+//   }
+//
+//   Future<void> _playNotificationSound() async {
+//     try {
+//       await _audioPlayer.play(AssetSource('sounds/notification.mp3'));
+//     } catch (e) {
+//       print("❌ Error playing sound: $e");
+//     }
+//   }
+//   // =============================================================
+//   // 🛑 your required permissions method (copy integrated)
+//   // =============================================================
+//   Future<void> _requestRequiredPermissions() async {
+//     // --- LOCATION PERMISSION ---
+//     LocationPermission locStatus = await Geolocator.checkPermission();
+//
+//     if (locStatus == LocationPermission.denied ||
+//         locStatus == LocationPermission.deniedForever) {
+//       locStatus = await Geolocator.requestPermission();
+//
+//       if (locStatus == LocationPermission.denied) {
+//         _toast("Location permission is required for delivery tracking");
+//       }
+//       if (locStatus == LocationPermission.deniedForever) {
+//         _toast("Location permanently denied. Allow it from app settings.");
+//       }
+//     }
+//
+//     // --- CAMERA PERMISSION ---
+//     PermissionStatus camStatus = await Permission.camera.status;
+//
+//     if (!camStatus.isGranted) {
+//       camStatus = await Permission.camera.request();
+//
+//       if (!camStatus.isGranted) {
+//         _toast("Camera permission is needed to take proof of delivery photos");
+//       }
+//     }
+//   }
+//
+//   // =============================================================
+//   // 🚀 warm GPS to make accept/reject instantly fast
+//   // =============================================================
+//   Future<void> _warmUpGPS() async {
+//     try {} catch (_) {}
+//   }
+//
+//   // =============================================================
+//   // 📡 keep GPS warm in background while app is open
+//   // =============================================================
+//   void _startLocationStream() {
+//     _locationStream = Geolocator.getPositionStream(
+//       locationSettings: const LocationSettings(
+//         accuracy: LocationAccuracy.low,
+//         distanceFilter: 50,
+//       ),
+//     ).listen((pos) {});
+//   }
+//
+//   @override
+//   void dispose() {
+//     _locationStream.cancel();
+//     _sseSubscription?.cancel();
+//     _audioPlayer.dispose();
+//     super.dispose();
+//   }
+//
+//   // =============================================================
+//   // UI — no changes
+//   // =============================================================
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       appBar: _HomeAppBar(firstName: firstName, status: status, unreadCount: unreadCount,),
+//       body: AnimatedSwitcher(
+//         duration: const Duration(milliseconds: 350),
+//         switchInCurve: Curves.easeOutCubic,
+//         switchOutCurve: Curves.easeInCubic,
+//         transitionBuilder: (child, animation) {
+//           final offsetAnimation = Tween(
+//             begin: const Offset(0, 0.08),
+//             end: Offset.zero,
+//           ).animate(animation);
+//
+//           return FadeTransition(
+//             opacity: animation,
+//             child: SlideTransition(position: offsetAnimation, child: child),
+//           );
+//         },
+//         child: SizedBox(key: ValueKey(_index), child: _pages[_index]),
+//       ),
+//       bottomNavigationBar: _BottomNav(
+//         currentIndex: _index,
+//         onChanged: (i) => setState(() => _index = i),
+//       ),
+//     );
+//   }
+// }
 
 /* ============================================================
    HOME APP BAR
@@ -214,7 +464,6 @@ class _HomeAppBar extends StatefulWidget implements PreferredSizeWidget {
   final int unreadCount;
 
   const _HomeAppBar({
-    super.key,
     required this.firstName,
     required this.status,
     required this.unreadCount,
@@ -288,12 +537,11 @@ class _HomeAppBarState extends State<_HomeAppBar> {
       actions: [
         IconButton(
           onPressed: () async {
-            // Open notification screen
+
             await Navigator.push(
               context,
               SlideFadeRoute(page: const NotificationScreen()),
             );
-
             // Optionally refresh unread count when returning
             if (mounted) setState(() {});
           },
