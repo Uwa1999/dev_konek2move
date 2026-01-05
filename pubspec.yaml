@@ -50,6 +50,7 @@ dependencies:
   provider: ^6.1.5+1
   local_auth: ^3.0.0
   audioplayers: ^6.5.1
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -64,7 +65,29 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/konek2move_icon.png"
+  min_sdk_android: 21
 
+  # --- ADAPTIVE ICON FIX FOR ANDROID ---
+  # This prevents your square logo from being cut into a circle
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/konek2move_icon.png"
+
+  web:
+    generate: true
+    image_path: "assets/images/konek2move_icon.png"
+    background_color: "#FFC70B"
+    theme_color: "#FFC70B"
+  windows:
+    generate: true
+    image_path: "assets/images/konek2move_icon.png"
+    icon_size: 256
+  macos:
+    generate: true
+    image_path: "assets/images/konek2move_icon.png"
 # The following section is specific to Flutter packages.
 flutter:
 

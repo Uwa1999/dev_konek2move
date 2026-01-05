@@ -3,9 +3,12 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:konek2move/services/api_services.dart';
+import 'package:konek2move/ui/login_page/login_screen.dart';
 import 'package:konek2move/ui/notification_page/notification_screen.dart';
 import 'package:konek2move/ui/profile_page/profile_screen.dart';
 import 'package:konek2move/utils/navigation.dart';
+import 'package:konek2move/widgets/custom_dialog.dart';
+import 'package:konek2move/widgets/custom_snackbar.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -68,8 +71,7 @@ class _MainScreenState extends State<MainScreen> {
   // =============================================================
   void _toast(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   Future<void> _loadFirstName() async {
@@ -98,9 +100,7 @@ class _MainScreenState extends State<MainScreen> {
     _sseActive = true;
     debugPrint("🔌 SSE connecting...");
 
-    _sseSubscription = ApiServices()
-        .listenNotifications()
-        .listen(
+    _sseSubscription = ApiServices().listenNotifications().listen(
       _onSseEvent,
       onError: _onSseError,
       onDone: _onSseDone,
@@ -181,9 +181,7 @@ class _MainScreenState extends State<MainScreen> {
   // =============================================================
   Future<void> _playNotificationSound() async {
     try {
-      await _audioPlayer.play(
-        AssetSource('sounds/notification.mp3'),
-      );
+      await _audioPlayer.play(AssetSource('sounds/notification.mp3'));
     } catch (e) {
       debugPrint("❌ sound error: $e");
     }
@@ -213,7 +211,6 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-
   void _startLocationStream() {
     _locationStream = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
@@ -242,23 +239,101 @@ class _MainScreenState extends State<MainScreen> {
   // =============================================================
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: _HomeAppBar(
-        firstName: firstName,
-        status: status,
-        unreadCount: unreadCount,
-      ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 350),
-        child: SizedBox(
-          key: ValueKey(_index),
-          child: _pages[_index],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        bool isLoggingOut = false;
+        if (!didPop) {
+          showCustomDialog(
+            context: context,
+            title: "Leave Delivery Mode?",
+            message:
+                "If you exit now, you may miss new delivery requests. Do you want to continue?",
+            icon: Icons.logout_rounded,
+            color: Colors.red,
+            buttonText: "Exit App",
+            cancelText: "Stay",
+            onButtonPressed: () async {
+              if (isLoggingOut) return;
+              isLoggingOut = true;
+
+              try {
+                final response = await ApiServices.logout();
+
+                if (!context.mounted) return;
+
+                Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pop(); // close dialog
+
+                if (response.retCode == "202") {
+                  final prefs = await SharedPreferences.getInstance();
+
+                  // ✅ Clear auth token only
+                  await prefs.remove("jwt_token");
+
+                  // ✅ Reset biometric session flag
+                  await prefs.setBool("biometric_in_progress", false);
+
+                  // ✅ Wait one frame before navigation
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      SlideFadeRoute(page: const LoginScreen()),
+                      (route) => false,
+                    );
+                  });
+
+                  showAppSnackBar(
+                    context,
+                    title: "Logged Out",
+                    message: response.message ?? "Successfully logged out",
+                    isSuccess: true,
+                    icon: Icons.check_circle_rounded,
+                  );
+                } else {
+                  showAppSnackBar(
+                    context,
+                    title: "Logout Failed",
+                    message: response.message ?? "Something went wrong",
+                    isSuccess: false,
+                    icon: Icons.error_rounded,
+                  );
+                }
+              } catch (e) {
+                if (!context.mounted) return;
+
+                Navigator.of(context, rootNavigator: true).pop();
+
+                showAppSnackBar(
+                  context,
+                  title: "Something went wrong",
+                  message: "We couldn’t complete your request.",
+                  isSuccess: false,
+                  icon: Icons.error_outline_rounded,
+                );
+              } finally {
+                isLoggingOut = false;
+              }
+            },
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: _HomeAppBar(
+          firstName: firstName,
+          status: status,
+          unreadCount: unreadCount,
         ),
-      ),
-      bottomNavigationBar: _BottomNav(
-        currentIndex: _index,
-        onChanged: (i) => setState(() => _index = i),
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 350),
+          child: SizedBox(key: ValueKey(_index), child: _pages[_index]),
+        ),
+        bottomNavigationBar: _BottomNav(
+          currentIndex: _index,
+          onChanged: (i) => setState(() => _index = i),
+        ),
       ),
     );
   }
@@ -535,15 +610,77 @@ class _HomeAppBarState extends State<_HomeAppBar> {
         ],
       ),
       actions: [
+        // IconButton(
+        //   onPressed: () async {
+        //     await Navigator.push(
+        //       context,
+        //       SlideFadeRoute(page: const NotificationScreen()),
+        //     );
+        //     fetchUnreadCount();
+        //     // Optionally refresh unread count when returning
+        //     if (mounted) setState(() {});
+        //   },
+        //   icon: Stack(
+        //     clipBehavior: Clip.none,
+        //     children: [
+        //       const Icon(
+        //         Icons.notifications_none,
+        //         size: 24,
+        //         color: AppColors.primary,
+        //       ),
+        //       if (widget.unreadCount > 0)
+        //         Positioned(
+        //           right: -1,
+        //           top: -1,
+        //           child: Container(
+        //             padding: const EdgeInsets.all(2),
+        //             constraints: const BoxConstraints(
+        //               minWidth: 8,
+        //               minHeight: 8,
+        //             ),
+        //             decoration: BoxDecoration(
+        //               color: AppColors.secondaryOrange,
+        //               shape: BoxShape.circle,
+        //             ),
+        //             child: Center(
+        //               child: Text(
+        //                 widget.unreadCount.toString(),
+        //                 style: const TextStyle(
+        //                   color: Colors.white,
+        //                   fontSize: 8,
+        //                   fontWeight: FontWeight.bold,
+        //                 ),
+        //               ),
+        //             ),
+        //           ),
+        //         ),
+        //     ],
+        //   ),
+        //   padding: const EdgeInsets.only(right: 16),
+        //   constraints: const BoxConstraints(),
+        // ),
         IconButton(
           onPressed: () async {
+            // If SSE is inactive (disconnected), refresh count immediately
+            if (!mounted) return;
+            final mainState = context
+                .findAncestorStateOfType<_MainScreenState>();
+            if (mainState != null && !mainState._sseActive) {
+              await mainState.fetchUnreadCount();
+            }
 
+            // Navigate to notifications
             await Navigator.push(
               context,
               SlideFadeRoute(page: const NotificationScreen()),
             );
-            // Optionally refresh unread count when returning
-            if (mounted) setState(() {});
+
+            // Refresh unread count again when returning
+            if (mainState != null) {
+              await mainState.fetchUnreadCount();
+            }
+
+            setState(() {}); // refresh the AppBar badge
           },
           icon: Stack(
             clipBehavior: Clip.none,
@@ -559,7 +696,10 @@ class _HomeAppBarState extends State<_HomeAppBar> {
                   top: -1,
                   child: Container(
                     padding: const EdgeInsets.all(2),
-                    constraints: const BoxConstraints(minWidth: 8, minHeight: 8),
+                    constraints: const BoxConstraints(
+                      minWidth: 8,
+                      minHeight: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.secondaryOrange,
                       shape: BoxShape.circle,
@@ -580,7 +720,7 @@ class _HomeAppBarState extends State<_HomeAppBar> {
           ),
           padding: const EdgeInsets.only(right: 16),
           constraints: const BoxConstraints(),
-        )
+        ),
       ],
     );
   }
