@@ -107,7 +107,10 @@ class _LoginScreenState extends State<LoginScreen>
       final email = prefs.getString("email");
       final password = prefs.getString("password");
 
-      if (email == null || password == null || email.isEmpty || password.isEmpty) {
+      if (email == null ||
+          password == null ||
+          email.isEmpty ||
+          password.isEmpty) {
         await prefs.setBool("biometric_enabled", false);
         _showCustomDialog(
           "Biometric login was reset. Please log in normally.",
@@ -145,10 +148,7 @@ class _LoginScreenState extends State<LoginScreen>
         );
       }
     } catch (_) {
-      _showCustomDialog(
-        "Unable to use biometric login right now.",
-        false,
-      );
+      _showCustomDialog("Unable to use biometric login right now.", false);
     } finally {
       _biometricInProgress = false;
       if (mounted) setState(() => _loading = false);
@@ -220,10 +220,10 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _saveUserData(
-      OrderResponse response, {
-        String? email,
-        String? password,
-      }) async {
+    OrderResponse response, {
+    String? email,
+    String? password,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
 
     if (email != null && password != null) {
@@ -306,6 +306,7 @@ class _LoginScreenState extends State<LoginScreen>
               child: SafeArea(
                 top: false,
                 child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(0, 24, 0, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -338,10 +339,10 @@ class _LoginScreenState extends State<LoginScreen>
                         hint: "Enter your password",
                         controller: _password,
                         obscure: _obscure,
-                        prefixIcon: Icons.lock_outline,
+                        prefixIcon: Icons.lock_outlined,
                         suffixIcon: _obscure
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
                         onSuffixTap: () => setState(() => _obscure = !_obscure),
                       ),
                       const SizedBox(height: 14),
@@ -381,35 +382,35 @@ class _LoginScreenState extends State<LoginScreen>
                           onPressed: _loading ? null : _login,
                           child: _loading
                               ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(width: 14),
-                              Text(
-                                "Signing in...",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          )
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    SizedBox(width: 14),
+                                    Text(
+                                      "Signing in...",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                )
                               : const Text(
-                            "Sign In",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
+                                  "Sign In",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -443,12 +444,16 @@ class _LoginScreenState extends State<LoginScreen>
                       if (_showBiometric)
                         Row(
                           children: [
-                            Expanded(child: Divider(color: Colors.grey.shade300)),
+                            Expanded(
+                              child: Divider(color: Colors.grey.shade300),
+                            ),
                             const Padding(
                               padding: EdgeInsets.symmetric(horizontal: 12),
                               child: Text("or"),
                             ),
-                            Expanded(child: Divider(color: Colors.grey.shade300)),
+                            Expanded(
+                              child: Divider(color: Colors.grey.shade300),
+                            ),
                           ],
                         ),
                       if (_showBiometric) const SizedBox(height: 12),

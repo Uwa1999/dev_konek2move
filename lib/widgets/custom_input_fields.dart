@@ -58,7 +58,6 @@ class CustomInputField extends StatelessWidget {
         const SizedBox(height: 8),
 
         /// ----- TEXT FIELD -----
-        /// ----- TEXT FIELD -----
         TextField(
           controller: controller,
           obscureText: obscure,

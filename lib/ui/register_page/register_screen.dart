@@ -1,6 +1,5 @@
 import 'dart:io';
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,7 +12,6 @@ import 'package:konek2move/utils/navigation.dart';
 import 'package:konek2move/widgets/custom_dialog.dart';
 import 'package:konek2move/widgets/custom_dropdown.dart';
 import 'package:konek2move/widgets/custom_input_fields.dart';
-
 
 class RegisterScreen extends StatefulWidget {
   final String email;
@@ -46,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // Set-up Password
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
 
   bool isMobileValid = false;
   bool _isPasswordVisible = false;
@@ -65,9 +63,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // List<String> regionOptions = [];
 
   Future<void> _pickImage(
-      Function(File) onImagePicked,
-      BuildContext context,
-      ) async {
+    Function(File) onImagePicked,
+    BuildContext context,
+  ) async {
     final ImagePicker picker = ImagePicker();
     final bottom = MediaQuery.of(context).padding.bottom;
 
@@ -121,7 +119,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         CircleAvatar(
                           radius: 32,
                           backgroundColor: Colors.blue[50],
-                          child: Icon(Icons.camera_alt_rounded,color: AppColors.primary)
+                          child: Icon(
+                            Icons.camera_alt_rounded,
+                            color: AppColors.primary,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         const Text("Camera", style: TextStyle(fontSize: 14)),
@@ -135,7 +136,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         CircleAvatar(
                           radius: 32,
                           backgroundColor: Colors.green[50],
-                          child: Icon(Icons.photo_library_rounded,color: AppColors.primary,)
+                          child: Icon(
+                            Icons.photo_library_rounded,
+                            color: AppColors.primary,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         const Text("Gallery", style: TextStyle(fontSize: 14)),
@@ -233,7 +237,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _onFieldChanged() {
     final mobileValid =
         _mobileController.text.length == 11 &&
-            _mobileController.text.startsWith('09');
+        _mobileController.text.startsWith('09');
     setState(() {
       isMobileValid = mobileValid;
     });
@@ -312,19 +316,12 @@ License Back Path: ${_drivingLicenseBack?.path}
     } catch (e) {
       if (mounted) Navigator.pop(context);
 
-      _showDialogMessage(
-        message: 'Registration failed: $e',
-        isError: true,
-      );
+      _showDialogMessage(message: 'Registration failed: $e', isError: true);
     }
   }
 
-
   /// --- CUSTOM DIALOG HANDLING ---
-  void _showDialogMessage({
-    required String message,
-    bool isError = false,
-  }) {
+  void _showDialogMessage({required String message, bool isError = false}) {
     final color = isError ? Colors.redAccent : Colors.green;
     final icon = isError ? Icons.error_outline : Icons.check_circle_outline;
 
@@ -387,10 +384,31 @@ License Back Path: ${_drivingLicenseBack?.path}
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
 
-      appBar:AppBar(
+      appBar: AppBar(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          onPressed: () {
+            showCustomDialog(
+              context: context,
+              title: "Cancel Registration?",
+              message:
+                  "Are you sure you want to cancel your registration as a delivery rider? You can always come back and join us later. Cancelling now will remove your account and any saved progress.",
+              icon: Icons.info_outlined,
+              color: AppColors.secondaryRed,
+              buttonText: "Yes, Cancel",
+              cancelText: "No, Keep Account",
+              onButtonPressed: () async {
+                Navigator.pushReplacement(
+                  context,
+                  SlideFadeRoute(page: const LandingScreen()),
+                );
+              },
+            );
+          },
+        ),
         centerTitle: true,
         title: const Text(
           "Registration",
@@ -402,11 +420,25 @@ License Back Path: ${_drivingLicenseBack?.path}
         ),
       ),
 
+      // AppBar(
+      //   backgroundColor: Colors.white,
+      //   surfaceTintColor: Colors.transparent,
+      //   elevation: 0,
+      //   centerTitle: true,
+      //   title: const Text(
+      //     "Registration",
+      //     style: TextStyle(
+      //       fontSize: 18,
+      //       fontWeight: FontWeight.w600,
+      //       color: Colors.black,
+      //     ),
+      //   ),
+      // ),
       body: Column(
         children: [
           /// Progress steps (fixed height)
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
             child: _buildProgressSteps(),
           ),
 
@@ -463,12 +495,12 @@ License Back Path: ${_drivingLicenseBack?.path}
             color: isActive ? AppColors.primary : Colors.grey.shade300,
             boxShadow: isActive
                 ? [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.4),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ]
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
                 : [],
           ),
           child: Center(
@@ -505,7 +537,7 @@ License Back Path: ${_drivingLicenseBack?.path}
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         height: 3,
-        margin: const EdgeInsets.symmetric(horizontal: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 5),
         decoration: BoxDecoration(
           color: isActive ? AppColors.primary : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(10),
@@ -554,7 +586,6 @@ License Back Path: ${_drivingLicenseBack?.path}
         color: Colors.white,
         child: Row(
           children: [
-
             if (_currentStep > 0)
               Expanded(
                 child: OutlinedButton(
@@ -588,17 +619,17 @@ License Back Path: ${_drivingLicenseBack?.path}
               child: ElevatedButton(
                 onPressed: canProceed
                     ? () {
-                  if (isLastStep) {
-                    _onRegister();
-                  } else {
-                    setState(() => _currentStep++);
-                    _pageController.animateToPage(
-                      _currentStep,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                    );
-                  }
-                }
+                        if (isLastStep) {
+                          _onRegister();
+                        } else {
+                          setState(() => _currentStep++);
+                          _pageController.animateToPage(
+                            _currentStep,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                          );
+                        }
+                      }
                     : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -617,8 +648,7 @@ License Back Path: ${_drivingLicenseBack?.path}
             ),
           ],
         ),
-      )
-
+      ),
     );
   }
 
@@ -764,7 +794,7 @@ License Back Path: ${_drivingLicenseBack?.path}
           _buildDocumentUploadItem(
             title: "Driving License (Front)",
             subtitle:
-            "Upload a clear photo of the front side of your vehicle’s license plate. Ensure the plate number is fully visible and legible, with no obstructions or glare.",
+                "Upload a clear photo of the front side of your vehicle’s license plate. Ensure the plate number is fully visible and legible, with no obstructions or glare.",
             imageFile: _drivingLicenseFront,
             onUploadTap: () {
               _pickImage((file) {
@@ -778,7 +808,7 @@ License Back Path: ${_drivingLicenseBack?.path}
           _buildDocumentUploadItem(
             title: "Driving License (Back)",
             subtitle:
-            "Upload a clear photo of the back side of your vehicle’s license plate. Make sure the plate number is fully visible and readable, with no obstructions or glare.",
+                "Upload a clear photo of the back side of your vehicle’s license plate. Make sure the plate number is fully visible and readable, with no obstructions or glare.",
             imageFile: _drivingLicenseBack,
             onUploadTap: () {
               _pickImage((file) {
@@ -831,35 +861,37 @@ License Back Path: ${_drivingLicenseBack?.path}
           ),
           const SizedBox(height: 16),
 
-        CustomInputField(
-          required: true,
-          label: "Password",
-          hint: "Enter your password",
-          controller: _passwordController,
-          obscure: !_isPasswordVisible,
-          suffixIcon: _isPasswordVisible        // 👁 show
-              ? Icons.visibility_rounded
-              : Icons.visibility_off_rounded,  // 👁‍🗨 hide
-          onSuffixTap: () =>
-              setState(() => _isPasswordVisible = !_isPasswordVisible),
-        ),
+          CustomInputField(
+            required: true,
+            label: "Password",
+            hint: "Enter your password",
+            controller: _passwordController,
+            obscure: !_isPasswordVisible,
+            suffixIcon:
+                _isPasswordVisible // 👁 show
+                ? Icons.visibility_rounded
+                : Icons.visibility_off_rounded, // 👁‍🗨 hide
+            onSuffixTap: () =>
+                setState(() => _isPasswordVisible = !_isPasswordVisible),
+          ),
 
-        const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-      CustomInputField(
-        required: true,
-        label: "Confirm Password",
-        hint: "Re-enter your password",
-        controller: _confirmPasswordController,
-        obscure: !_isConfirmPasswordVisible,
-        suffixIcon: _isConfirmPasswordVisible
-            ? Icons.visibility_rounded       // 👁 visible
-            : Icons.visibility_off_rounded, // 👁‍🗨 hidden
-        onSuffixTap: () => setState(
+          CustomInputField(
+            required: true,
+            label: "Confirm Password",
+            hint: "Re-enter your password",
+            controller: _confirmPasswordController,
+            obscure: !_isConfirmPasswordVisible,
+            suffixIcon: _isConfirmPasswordVisible
+                ? Icons
+                      .visibility_rounded // 👁 visible
+                : Icons.visibility_off_rounded, // 👁‍🗨 hidden
+            onSuffixTap: () => setState(
               () => _isConfirmPasswordVisible = !_isConfirmPasswordVisible,
-        ),
-      ),
-      ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -922,29 +954,29 @@ License Back Path: ${_drivingLicenseBack?.path}
               ),
               child: imageFile == null
                   ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.add, size: 30, color: Colors.black87),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Upload Photo",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              )
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.add, size: 30, color: Colors.black87),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Upload Photo",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    )
                   : ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  imageFile,
-                  fit: BoxFit.cover,
-                  width: 110,
-                  height: 110,
-                ),
-              ),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        imageFile,
+                        fit: BoxFit.cover,
+                        width: 110,
+                        height: 110,
+                      ),
+                    ),
             ),
           ),
         ],

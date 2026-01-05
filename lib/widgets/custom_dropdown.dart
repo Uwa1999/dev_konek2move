@@ -41,7 +41,12 @@ class _CustomDropdownFieldState extends State<CustomDropdownField> {
               color: Colors.black87,
             ),
             children: widget.required
-                ? const [TextSpan(text: " *", style: TextStyle(color: Colors.red))]
+                ? const [
+                    TextSpan(
+                      text: " *",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ]
                 : [],
           ),
         ),
@@ -59,7 +64,9 @@ class _CustomDropdownFieldState extends State<CustomDropdownField> {
               filled: true,
               fillColor: Colors.grey.shade50,
               contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 18), // SAME HEIGHT
+                horizontal: 16,
+                vertical: 14.5,
+              ), // SAME HEIGHT
 
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -67,9 +74,7 @@ class _CustomDropdownFieldState extends State<CustomDropdownField> {
 
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: Colors.grey.shade300,
-                ),
+                borderSide: BorderSide(color: Colors.grey.shade300),
               ),
 
               focusedBorder: OutlineInputBorder(
@@ -98,10 +103,7 @@ class _CustomDropdownFieldState extends State<CustomDropdownField> {
                   ),
                 ),
 
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  color: Colors.grey.shade600,
-                ),
+                Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade600),
               ],
             ),
           ),
@@ -147,16 +149,15 @@ class _CustomDropdownFieldState extends State<CustomDropdownField> {
 
               const SizedBox(height: 16),
 
-              ...widget.options.map((e) => ListTile(
-                title: Text(
-                  e,
-                  style: const TextStyle(fontSize: 16),
+              ...widget.options.map(
+                (e) => ListTile(
+                  title: Text(e, style: const TextStyle(fontSize: 16)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.onChanged(e);
+                  },
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  widget.onChanged(e);
-                },
-              )),
+              ),
               const SizedBox(height: 14),
             ],
           ),

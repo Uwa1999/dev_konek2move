@@ -8,7 +8,6 @@ import 'package:konek2move/utils/app_colors.dart';
 import 'package:konek2move/utils/navigation.dart';
 import 'package:konek2move/widgets/custom_dialog.dart';
 
-
 class EmailVerificationScreen extends StatefulWidget {
   final String email;
 
@@ -22,7 +21,7 @@ class EmailVerificationScreen extends StatefulWidget {
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   final List<TextEditingController> _otpControllers = List.generate(
     6,
-        (_) => TextEditingController(),
+    (_) => TextEditingController(),
   );
 
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
@@ -52,10 +51,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     final otp = _otpControllers.map((c) => c.text).join();
 
     if (otp.length < 6) {
-      _showDialogMessage(
-        message: 'Please enter complete OTP',
-        isError: true,
-      );
+      _showDialogMessage(message: 'Please enter complete OTP', isError: true);
       return;
     }
 
@@ -73,21 +69,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           isError: false,
         );
 
-
-        Navigator.pushReplacement(context, SlideFadeRoute(page: RegisterScreen(email: widget.email)));
-      } else {
-        _showDialogMessage(
-          message: response.message!,
-          isError: true,
+        Navigator.pushReplacement(
+          context,
+          SlideFadeRoute(page: RegisterScreen(email: widget.email)),
         );
+      } else {
+        _showDialogMessage(message: response.message!, isError: true);
       }
     } catch (e) {
       if (!mounted) return;
 
-      _showDialogMessage(
-        message: 'Failed to verify OTP: $e',
-        isError: true,
-      );
+      _showDialogMessage(message: 'Failed to verify OTP: $e', isError: true);
     } finally {
       setState(() {
         isOtpComplete = _otpControllers.every((c) => c.text.isNotEmpty);
@@ -95,12 +87,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     }
   }
 
-
   /// --- CUSTOM DIALOG HANDLING ---
-  void _showDialogMessage({
-    required String message,
-    bool isError = false,
-  }) {
+  void _showDialogMessage({required String message, bool isError = false}) {
     final color = isError ? Colors.redAccent : Colors.green;
     final icon = isError ? Icons.error_outline : Icons.check_circle_outline;
 
@@ -111,11 +99,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       icon: icon,
       color: color,
       buttonText: "Okay!",
-      onButtonPressed: () async {
-        Navigator.pop(context); // close dialog
-      },
     );
   }
+
   @override
   void initState() {
     super.initState();
@@ -146,9 +132,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     try {
       final ApiServices api = ApiServices();
       final response = await api.emailVerification(widget.email);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${response.message}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('${response.message}')));
       _startTimer();
     } catch (e) {
       ScaffoldMessenger.of(
@@ -164,7 +150,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border.all(
-            color: currentIndex == index ? AppColors.primary : Colors.grey.shade300,
+            color: currentIndex == index
+                ? AppColors.primary
+                : Colors.grey.shade300,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -231,7 +219,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () => Navigator.pushReplacement(context, SlideFadeRoute(page: const EmailScreen())),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            SlideFadeRoute(page: const EmailScreen()),
+          ),
         ),
         centerTitle: true,
         title: const Text(
@@ -267,7 +258,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 6,
-                    (i) => Padding(
+                (i) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 3),
                   child: _otpBox(i),
                 ),
@@ -278,25 +269,25 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
             _secondsRemaining == 0
                 ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Didn't receive code?",
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-                TextButton(
-                  onPressed: () => _resendOTP(),
-                  child: const Text(
-                    "Resend",
-                    style: TextStyle(color: AppColors.primary),
-                  ),
-                ),
-              ],
-            )
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Didn't receive code?",
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                      TextButton(
+                        onPressed: () => _resendOTP(),
+                        child: const Text(
+                          "Resend",
+                          style: TextStyle(color: AppColors.primary),
+                        ),
+                      ),
+                    ],
+                  )
                 : Text(
-              "Resend available in $_secondsRemaining seconds",
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
+                    "Resend available in $_secondsRemaining seconds",
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
 
             const SizedBox(height: 20),
           ],
@@ -306,7 +297,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       bottomNavigationBar: _buildBottomAction(context),
     );
   }
-
 
   Widget _buildBottomAction(BuildContext context) {
     final safeBottom = MediaQuery.of(context).padding.bottom;
@@ -341,35 +331,35 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
               child: isLoading
                   ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(width: 14),
-                  Text(
-                    "Sending...",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              )
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 14),
+                        Text(
+                          "Sending...",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    )
                   : const Text(
-                "Continue",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+                      "Continue",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ),

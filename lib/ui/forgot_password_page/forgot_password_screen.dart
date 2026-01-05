@@ -5,6 +5,7 @@ import 'package:konek2move/ui/login_page/login_screen.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:konek2move/utils/navigation.dart';
 import 'package:konek2move/widgets/custom_dialog.dart';
+import 'package:konek2move/widgets/custom_input_fields.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -62,10 +63,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      _showDialogMessage(
-        message: 'Failed to send OTP: $e',
-        isError: true,
-      );
+      _showDialogMessage(message: 'Failed to send OTP: $e', isError: true);
     } finally {
       if (mounted) {
         setState(() => isLoading = false);
@@ -74,10 +72,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   /// --- CUSTOM DIALOG HANDLING ---
-  void _showDialogMessage({
-    required String message,
-    bool isError = false,
-  }) {
+  void _showDialogMessage({required String message, bool isError = false}) {
     final color = isError ? Colors.redAccent : Colors.green;
     final icon = isError ? Icons.error_outline : Icons.check_circle_outline;
 
@@ -111,7 +106,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () => Navigator.pushReplacement(context, SlideFadeRoute(page: const LoginScreen())),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            SlideFadeRoute(page: const LoginScreen()),
+          ),
         ),
         centerTitle: true,
         title: const Text(
@@ -136,29 +134,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
             const SizedBox(height: 24),
 
-            TextField(
+            CustomInputField(
+              label: "Email Address",
+              hint: "Enter your email address",
               controller: emailController,
+              prefixIcon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
-
-              decoration: InputDecoration(prefixIcon: Icon(Icons.email_rounded,color: AppColors.primary,),
-                hintText: "Enter your email address",
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide:
-                  const BorderSide(color: AppColors.primary, width: 2),
-                ),
-              ),
             ),
           ],
         ),
@@ -201,40 +182,39 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
               child: isLoading
                   ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(width: 14),
-                  Text(
-                    "Sending...",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              )
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 14),
+                        Text(
+                          "Sending...",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    )
                   : const Text(
-                "Continue",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+                      "Continue",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ),
       ),
     );
   }
-
 }
