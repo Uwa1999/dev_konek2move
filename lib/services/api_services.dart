@@ -7,6 +7,54 @@ import 'dns_services.dart';
 import 'model_services.dart';
 
 class ApiServices {
+  Future<void> markAllNotificationsAsRead() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("jwt_token") ?? "";
+
+    final url = Uri.parse(
+      '${GetDNS.getOttokonekHestia()}/api/private/v1/moveapp/notification/mark-all-read',
+    );
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+    } else {
+      print(
+        'Failed to mark notifications as read: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  Future<void> markNotificationAsRead({required int notificationId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("jwt_token") ?? "";
+    final url = Uri.parse(
+      '${GetDNS.getOttokonekHestia()}/api/private/v1/moveapp/notification/view',
+    );
+
+    final body = json.encode({'notification_id': notificationId});
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+    } else {
+      throw Exception(
+        'Failed to mark notification as read: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
 
   Future<int> getNotifUnreadCount() async {
     try {
@@ -37,7 +85,8 @@ class ApiServices {
         }
       } else {
         print(
-            "getNotifUnreadCount: Unexpected status code ${response.statusCode}");
+          "getNotifUnreadCount: Unexpected status code ${response.statusCode}",
+        );
         return 0;
       }
     } catch (e) {
@@ -63,7 +112,6 @@ class ApiServices {
         },
       );
 
-
       if (response.statusCode == 200) {
         return NotificationResponse.fromJson(jsonDecode(response.body));
       }
@@ -77,7 +125,6 @@ class ApiServices {
       throw Exception("Unable to fetch notifications. $e");
     }
   }
-
 
   static Future<OrderResponse> logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -95,7 +142,7 @@ class ApiServices {
           'Accept': 'application/json',
         },
       );
-print(response.body);
+      print(response.body);
       if (response.statusCode == 200) {
         return OrderResponse.fromJson(jsonDecode(response.body));
       }
@@ -108,7 +155,6 @@ print(response.body);
       throw Exception("Unable to log out. $e");
     }
   }
-
 
   // Stream<Map<String, dynamic>> listenNotifications() async* {
   //   final prefs = await SharedPreferences.getInstance();
@@ -216,7 +262,6 @@ print(response.body);
       client.close();
     }
   }
-
 
   Future<ChatMessageResponse> getChatMessages(int chatId) async {
     try {

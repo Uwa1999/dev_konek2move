@@ -523,7 +523,7 @@ class NotificationRecord {
   final String body;
   final String topic;
   final String createdAt;
-  final bool isRead;
+  bool isRead;
   final String recipientType;
   final String recipientCode;
   final String viewedAt;

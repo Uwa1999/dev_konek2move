@@ -172,7 +172,7 @@ class _OrderScreenState extends State<OrderScreen> {
   // =====================================================
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       child: AnimatedBuilder(
         animation: _searchFocus,
         builder: (_, _) {
@@ -392,65 +392,68 @@ class _OrderScreenState extends State<OrderScreen> {
                       )
                     : _orders.isEmpty
                     ? ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.65, // adaptive height
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        physics: const AlwaysScrollableScrollPhysics(),
                         children: [
-                          /// --- ILLUSTRATION / IMAGE PLACEHOLDER ---
-                          Container(
-                            width: 160,
-                            height: 160,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Icon(
-                              Icons.inbox_rounded,
-                              size: 72,
-                              color: Colors.grey,
-                            ),
-                          ),
+                          SizedBox(
+                            height:
+                                MediaQuery.of(context).size.height *
+                                0.65, // adaptive height
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                /// --- ILLUSTRATION / IMAGE PLACEHOLDER ---
+                                Container(
+                                  width: 160,
+                                  height: 160,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Icon(
+                                    Icons.inbox_rounded,
+                                    size: 72,
+                                    color: Colors.grey,
+                                  ),
+                                ),
 
-                          const SizedBox(height: 26),
+                                const SizedBox(height: 26),
 
-                          /// --- TITLE ---
-                          const Text(
-                            "No Orders Yet",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
+                                /// --- TITLE ---
+                                const Text(
+                                  "No Orders Yet",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
 
-                          const SizedBox(height: 8),
+                                const SizedBox(height: 8),
 
-                          /// --- SUBTITLE ---
-                          const Text(
-                            "Your recent orders will show up here.\nCheck back later",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: AppColors.textSecondary,
-                              height: 1.4,
+                                /// --- SUBTITLE ---
+                                const Text(
+                                  "Your recent orders will show up here.\nCheck back later",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: AppColors.textSecondary,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                  ],
-                )
-
+                      )
                     : ListView.separated(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12 + 80),
                         // ^ padding bottom prevents overflow under NavBar
                         itemCount: _orders.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 14),
-                        itemBuilder: (_, index) =>
-                            OrderCard(order: _orders[index],onRefresh: _reload,),
+                        itemBuilder: (_, index) => OrderCard(
+                          order: _orders[index],
+                          onRefresh: _reload,
+                        ),
                       ),
               ),
             ),

@@ -3,6 +3,7 @@ import 'package:konek2move/services/api_services.dart';
 import 'package:konek2move/services/model_services.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:intl/intl.dart';
+import 'package:konek2move/widgets/custom_snackbar.dart';
 import 'package:shimmer/shimmer.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -30,7 +31,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 100 &&
+              _scrollController.position.maxScrollExtent - 100 &&
           !isLoadingMore &&
           currentPage < totalPages) {
         fetchMoreNotifications();
@@ -53,8 +54,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
     });
 
     try {
-      final NotificationResponse response =
-      await ApiServices().getNotifications(page: currentPage);
+      final NotificationResponse response = await ApiServices()
+          .getNotifications(page: currentPage);
 
       setState(() {
         notifications = response.data.records;
@@ -77,8 +78,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     try {
       currentPage += 1;
-      final NotificationResponse response =
-      await ApiServices().getNotifications(page: currentPage);
+      final NotificationResponse response = await ApiServices()
+          .getNotifications(page: currentPage);
 
       setState(() {
         notifications.addAll(response.data.records);
@@ -230,6 +231,48 @@ class _NotificationScreenState extends State<NotificationScreen> {
             color: Colors.black,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.mark_email_read, color: AppColors.primary),
+            onPressed: isLoading
+                ? null
+                : () async {
+                    setState(() {
+                      isLoading = true;
+                    });
+                    try {
+                      await ApiServices().markAllNotificationsAsRead();
+
+                      setState(() {
+                        for (var notif in notifications) {
+                          notif.isRead = true;
+                        }
+                      });
+
+                      showAppSnackBar(
+                        icon: Icons.check_circle_rounded,
+                        context,
+                        title: "Success",
+                        message: "All notifications marked as read",
+                        isSuccess: true,
+                      );
+                    } catch (e) {
+                      showAppSnackBar(
+                        icon: Icons.error_outline,
+                        context,
+                        title: "Error",
+                        message: "Failed to mark as read",
+                        isSuccess: false,
+                      );
+                    } finally {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    }
+                  },
+            tooltip: 'Mark all as read',
+          ),
+        ],
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             color: AppColors.surface,
@@ -247,80 +290,111 @@ class _NotificationScreenState extends State<NotificationScreen> {
         onRefresh: fetchNotifications,
         child: isLoading
             ? ListView.builder(
-          padding:
-          const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          itemCount: 6,
-          itemBuilder: (_, __) => _buildShimmerTile(),
-        )
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 16,
+                ),
+                itemCount: 6,
+                itemBuilder: (_, __) => _buildShimmerTile(),
+              )
             : hasError
             ? ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.65,
-              child: Center(
-                child: Text(
-                  "Failed to load notifications",
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-              ),
-            ),
-          ],
-        )
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.65,
+                    child: Center(
+                      child: Text(
+                        "Failed to load notifications",
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ),
+                  ),
+                ],
+              )
             : notifications.isEmpty
             ? _buildEmptyState(context)
             : ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(
-              vertical: 12, horizontal: 16),
-          itemCount:
-          notifications.length + (isLoadingMore ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index < notifications.length) {
-              final notification = notifications[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _NotificationTile(
-                  title: notification.title,
-                  message: notification.body,
-                  time: formatTime(notification.createdAt),
-                  isUnread: !notification.isRead,
-                  icon: Icons.notifications,
+                controller: _scrollController,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 16,
                 ),
-              );
-            } else {
-              // shimmer at bottom while loading more
-              return _buildShimmerTile();
-            }
-          },
-        ),
+                itemCount: notifications.length + (isLoadingMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index < notifications.length) {
+                    final notification = notifications[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _NotificationTile(
+                        notificationId: notification.id,
+                        title: notification.title,
+                        message: notification.body,
+                        time: formatTime(notification.createdAt),
+                        isUnread: !notification.isRead,
+                        icon: Icons.notifications,
+                        onTap: () async {
+                          if (!notification.isRead) {
+                            try {
+                              await ApiServices().markNotificationAsRead(
+                                notificationId: notification.id,
+                              );
+                              setState(() {
+                                notification.isRead = true; // update UI
+                              });
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Failed to mark as read"),
+                                ),
+                              );
+
+                              showAppSnackBar(
+                                icon: Icons.error_outline,
+                                context,
+                                title: "Error",
+                                message: "Failed to mark as read",
+                                isSuccess: false,
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    );
+                  } else {
+                    // shimmer at bottom while loading more
+                    return _buildShimmerTile();
+                  }
+                },
+              ),
       ),
     );
   }
 }
 
-// Individual notification tile
 class _NotificationTile extends StatelessWidget {
+  final int notificationId; // NEW
   final String title;
   final String message;
   final String time;
   final bool isUnread;
   final IconData? icon;
+  final VoidCallback? onTap; // NEW
 
   const _NotificationTile({
+    required this.notificationId, // NEW
     required this.title,
     required this.message,
     required this.time,
     required this.isUnread,
     this.icon,
+    this.onTap, // NEW
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        // TODO: mark as read if needed
-      },
+      onTap: onTap, // USE CALLBACK
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -330,15 +404,10 @@ class _NotificationTile extends StatelessWidget {
               color: Colors.grey.shade200,
               blurRadius: 6,
               offset: const Offset(0, 2),
-            )
+            ),
           ],
           border: isUnread
-              ? Border(
-            left: BorderSide(
-              color: AppColors.primaryDark,
-              width: 4,
-            ),
-          )
+              ? Border(left: BorderSide(color: AppColors.primaryDark, width: 4))
               : null,
         ),
         padding: const EdgeInsets.all(12),
@@ -389,8 +458,9 @@ class _NotificationTile extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontWeight:
-                            isUnread ? FontWeight.w600 : FontWeight.w500,
+                            fontWeight: isUnread
+                                ? FontWeight.w600
+                                : FontWeight.w500,
                             fontSize: 14,
                             color: isUnread
                                 ? Colors.black

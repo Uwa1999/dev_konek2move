@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:konek2move/services/model_services.dart';
 import 'package:konek2move/ui/main_screen.dart';
 import 'package:konek2move/ui/order_page/order_status_controller.dart';
+import 'package:konek2move/ui/order_page/order_text_message_screen.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:konek2move/utils/navigation.dart';
 import 'package:konek2move/widgets/custom_google_map.dart';
@@ -110,6 +111,43 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   ],
                 ),
                 child: const Icon(Icons.arrow_back_ios_new, size: 18),
+              ),
+            ),
+          ),
+
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 16,
+            child: GestureDetector(
+              onTap: () {
+                final chatId = widget.order.chat?.id;
+                final orderNo = widget.order.orderNo.toString();
+
+                Navigator.push(
+                  context,
+                  SlideFadeRoute(
+                    page: OrderMessagesScreen(
+                      chatId: chatId,
+                      currentUserType: _userType,
+                      orderNo: orderNo,
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.fieldFill,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15), // shadow color
+                      blurRadius: 8, // softness
+                      offset: const Offset(0, 3), // position of shadow
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.support_agent, size: 18),
               ),
             ),
           ),
@@ -360,16 +398,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(24),
                     onTap: () {
-                      final chatId = widget.order.chat?.id;
-                      final orderNo = widget.order.orderNo.toString();
-
                       Navigator.push(
                         context,
                         SlideFadeRoute(
-                          page: OrderMessagesScreen(
-                            chatId: chatId,
-                            currentUserType: _userType,
-                            orderNo: orderNo,
+                          page: OrderTextMessagesScreen(
+                            name: widget.order.customer!.name,
+                            contact: widget.order.driver!.phone.toString(),
+                            orderNo: widget.order.orderNo.toString(),
+                            amount: widget.order.totalAmount.toString(),
                           ),
                         ),
                       );

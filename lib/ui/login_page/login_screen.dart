@@ -236,6 +236,7 @@ class _LoginScreenState extends State<LoginScreen>
     await prefs.setString("driver_code", response.data!.driver!.driverCode!);
     await prefs.setBool("active", response.data!.driver!.active!);
     await prefs.setString("status", response.data!.driver!.status!);
+
     await prefs.setString("id", response.data!.driver!.id.toString());
     await prefs.setString(
       "assigned_store_code",

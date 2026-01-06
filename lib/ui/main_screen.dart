@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:konek2move/services/api_services.dart';
 import 'package:konek2move/ui/login_page/login_screen.dart';
+import 'package:konek2move/ui/map_page/map_screen.dart';
 import 'package:konek2move/ui/notification_page/notification_screen.dart';
 import 'package:konek2move/ui/profile_page/profile_screen.dart';
 import 'package:konek2move/utils/navigation.dart';
@@ -46,7 +47,7 @@ class _MainScreenState extends State<MainScreen> {
   final _pages = const [
     HomeScreen(),
     OrderScreen(),
-    Placeholder(),
+    MapScreen(),
     ProfileScreen(),
   ];
 
