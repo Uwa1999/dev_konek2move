@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:konek2move/services/network_inspector_services.dart';
 import 'package:konek2move/services/provider_services.dart';
 import 'package:konek2move/ui/splash_page/splash_screen.dart';
 import 'package:konek2move/utils/internet_connection.dart';
@@ -6,6 +7,7 @@ import 'package:provider/provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // await NetworkNotificationService.init();
   runApp(
     MultiProvider(
       providers: [

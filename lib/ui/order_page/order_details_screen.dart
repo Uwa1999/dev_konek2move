@@ -1,5 +1,7 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:konek2move/services/api_services.dart';
 import 'package:konek2move/services/model_services.dart';
 import 'package:konek2move/ui/main_screen.dart';
 import 'package:konek2move/ui/order_page/order_status_controller.dart';
@@ -11,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'order_messages_screen.dart';
+import 'dart:async';
 
 class OrderDetailsScreen extends StatefulWidget {
   final OrderRecord order;
@@ -21,8 +24,13 @@ class OrderDetailsScreen extends StatefulWidget {
 }
 
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
+  final AudioPlayer _audioPlayer = AudioPlayer();
   late OrderStatusController controller;
   String _userType = '';
+  int chatUnreadCount = 0;
+  bool _isChatOpen = false;
+
+  StreamSubscription<Map<String, dynamic>>? _notificationSubscription;
 
   @override
   void initState() {
@@ -32,12 +40,72 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       onStatusChanged: (_) => setState(() {}),
     );
     _loadUserType();
+    _startSSE(); // start listening SSE immediately
   }
 
   @override
   void dispose() {
     controller.dispose();
+    _notificationSubscription?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  // ---------------- SSE Chat Listener ----------------
+  void _startSSE() {
+    _notificationSubscription?.cancel();
+
+    _notificationSubscription = ApiServices().listenNotifications().listen(
+      (event) {
+        final meta = event['data']?['meta'];
+        if (meta == null) return;
+
+        final topic = event['data']?['topic'] ?? '';
+        if (!topic.startsWith('chat.new_message')) return;
+
+        final chatIdFromSSE = meta['chat_id'];
+        final chatId = widget.order.chat?.id;
+        if (chatIdFromSSE != chatId) return;
+
+        final recipientType = event['data']?['recipient_type'] ?? 'other';
+        final senderType = (recipientType == _userType)
+            ? (_userType == 'driver' ? 'customer' : 'driver')
+            : recipientType;
+
+        final attachmentUrl = (meta['attachment_url'] ?? "").isEmpty
+            ? null
+            : meta['attachment_url'];
+
+        final newMsg = ChatMessage(
+          id: meta['message_id'] ?? 0,
+          message: meta['message'],
+          senderType: senderType,
+          senderCode: event['data']?['recipient_code'],
+          attachmentUrl: attachmentUrl,
+          messageType: meta['message_type'] ?? 'text',
+          createdAt:
+              DateTime.tryParse(event['data']?['created_at'] ?? '') ??
+              DateTime.now(),
+        );
+
+        setState(() {
+          if (!_isChatOpen) {
+            chatUnreadCount += 1;
+
+            // Play notification sound
+            _audioPlayer.play(
+              AssetSource('sounds/notification.mp3'),
+              volume: 1.0,
+            );
+          }
+        });
+      },
+      onError: (error) async {
+        await Future.delayed(const Duration(seconds: 3));
+        _startSSE();
+      },
+      cancelOnError: false,
+    );
   }
 
   String _safe(value) => (value == null || value.toString().trim().isEmpty)
@@ -104,9 +172,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15), // shadow color
-                      blurRadius: 8, // softness
-                      offset: const Offset(0, 3), // position of shadow
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
@@ -115,13 +183,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             ),
           ),
 
+          /// ---------- CHAT BUTTON WITH UNREAD COUNT ----------
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             right: 16,
             child: GestureDetector(
-              onTap: () {
+              onTap: () async {
                 final chatId = widget.order.chat?.id;
                 final orderNo = widget.order.orderNo.toString();
+
+                setState(() {
+                  _isChatOpen = true;
+                  chatUnreadCount = 0;
+                });
 
                 Navigator.push(
                   context,
@@ -134,20 +208,55 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   ),
                 );
               },
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.fieldFill,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15), // shadow color
-                      blurRadius: 8, // softness
-                      offset: const Offset(0, 3), // position of shadow
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.fieldFill,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: const Icon(Icons.support_agent, size: 18),
+                    child: const Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 18,
+                    ),
+                  ),
+                  if (chatUnreadCount > 0)
+                    Positioned(
+                      right: -4,
+                      top: -4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Center(
+                          child: Text(
+                            chatUnreadCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -208,7 +317,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              // _safe(currentStatus),
                               _safe(controller.status),
                               style: const TextStyle(
                                 fontSize: 12,
@@ -233,7 +341,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       ),
 
                       const SizedBox(height: 14),
-
                       IntrinsicHeight(
                         child: Row(
                           children: [
@@ -262,7 +369,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               ],
                             ),
                             const SizedBox(width: 12),
-
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,14 +413,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
                       const SizedBox(height: 20),
 
-                      /// =========================================================
-                      /// 🚚 **ACTION BUTTON CONTROLLED BY OrderStatusController**
-                      /// =========================================================
                       controller.buildActionButton(context),
 
                       const SizedBox(height: 12),
 
-                      /// --- MORE INFO BELOW ---
                       _buildInfoSection(),
 
                       const SizedBox(height: 12),
@@ -330,7 +432,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  /// --- Info Section (unchanged) ---
+  /// --- Info Section ---
   Widget _buildInfoSection() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -359,9 +461,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   elevation: 3,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(24),
-                    onTap: () {
-                      _callNumber(_safe(widget.order.customer?.phone));
-                    },
+                    onTap: () =>
+                        _callNumber(_safe(widget.order.customer?.phone)),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         vertical: 12,
@@ -386,7 +487,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
               ),
 
-              const SizedBox(width: 16), // spacing between buttons
+              const SizedBox(width: 16),
+
               // Message Button
               Expanded(
                 child: Card(
@@ -421,7 +523,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           Icon(Icons.message_rounded, color: AppColors.primary),
                           SizedBox(width: 8),
                           Text(
-                            'Message',
+                            'Text Message',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 12,
@@ -440,7 +542,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  /// --- Items Section (unchanged) ---
+  /// --- Items Section ---
   Widget _buildItemsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -510,9 +612,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 }
 
-/* ===================================================================
-   DASHED LINE PAINTER
-=================================================================== */
 class _DashedLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

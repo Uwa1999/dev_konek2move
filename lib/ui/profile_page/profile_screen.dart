@@ -119,7 +119,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               showAppSnackBar(
                 context,
                 title: "Coming Soon",
-                message: "This feature is currently under development. Stay tuned!",
+                message:
+                    "This feature is currently under development. Stay tuned!",
                 isSuccess: false,
                 icon: Icons.info_outline_rounded,
               );
@@ -144,7 +145,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               showAppSnackBar(
                 context,
                 title: "Coming Soon",
-                message: "This feature is currently under development. Stay tuned!",
+                message:
+                    "This feature is currently under development. Stay tuned!",
                 isSuccess: false,
                 icon: Icons.info_outline_rounded,
               );
@@ -169,7 +171,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               showAppSnackBar(
                 context,
                 title: "Coming Soon",
-                message: "This feature is currently under development. Stay tuned!",
+                message:
+                    "This feature is currently under development. Stay tuned!",
                 isSuccess: false,
                 icon: Icons.info_outline_rounded,
               );
@@ -188,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 title: "Logout?",
                 message: "Are you sure you want to log out?",
                 icon: Icons.logout_rounded,
-                color: Colors.red,
+                color: AppColors.secondaryRed,
                 buttonText: "Confirm",
                 cancelText: "Cancel",
                 onButtonPressed: () async {
@@ -200,7 +203,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     if (!context.mounted) return;
 
-                    Navigator.of(context, rootNavigator: true).pop(); // close dialog
+                    Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop(); // close dialog
 
                     if (response.retCode == "202") {
                       final prefs = await SharedPreferences.getInstance();
@@ -215,7 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         Navigator.of(context).pushAndRemoveUntil(
                           SlideFadeRoute(page: const LoginScreen()),
-                              (route) => false,
+                          (route) => false,
                         );
                       });
 
@@ -252,10 +258,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 },
               );
-
             },
           ),
-
         ],
       ),
     );

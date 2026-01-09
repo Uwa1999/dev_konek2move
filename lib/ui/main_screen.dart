@@ -113,13 +113,21 @@ class _MainScreenState extends State<MainScreen> {
   // 🔔 SSE EVENT
   // =============================================================
   void _onSseEvent(Map<String, dynamic> event) {
-    _sseRetryCount = 0; // reset retries on success
+    _sseRetryCount = 0;
 
     final meta = event['data'];
     if (meta == null) return;
 
     final recipientType = meta['recipient_type'];
     if (recipientType != 'driver') return;
+
+    final topic = meta['topic'] ?? '';
+
+    // Only increment unread count for non-chat notifications
+    if (topic.startsWith('chat.')) {
+      debugPrint("💬 Chat message received — skipping main unread count");
+      return;
+    }
 
     if (!mounted) return;
 
@@ -251,7 +259,7 @@ class _MainScreenState extends State<MainScreen> {
             message:
                 "If you exit now, you may miss new delivery requests. Do you want to continue?",
             icon: Icons.logout_rounded,
-            color: Colors.red,
+            color: AppColors.secondaryRed,
             buttonText: "Exit App",
             cancelText: "Stay",
             onButtonPressed: () async {

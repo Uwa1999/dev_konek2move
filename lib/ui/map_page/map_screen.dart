@@ -357,9 +357,9 @@ class _MapScreenState extends State<MapScreen> {
                   polylines: _polylines,
                 ),
           Positioned(
-            top: 12,
-            left: 12,
-            right: 12,
+            top: 16,
+            left: 16,
+            right: 16,
             child: Column(
               children: [
                 Material(

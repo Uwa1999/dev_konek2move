@@ -326,7 +326,6 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                       const SizedBox(height: 28),
                       CustomInputField(
-                        required: true,
                         label: "Email Address",
                         hint: "Enter your email address",
                         controller: _email,
@@ -335,7 +334,6 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                       const SizedBox(height: 20),
                       CustomInputField(
-                        required: true,
                         label: "Password",
                         hint: "Enter your password",
                         controller: _password,

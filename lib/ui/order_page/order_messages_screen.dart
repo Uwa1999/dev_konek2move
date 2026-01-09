@@ -31,6 +31,7 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
   final TextEditingController _controller = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
+  int chatUnreadCount = 0;
   bool _isLoading = true;
   List<ChatMessage> _messages = [];
 
@@ -75,9 +76,12 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
     }
   }
 
+  // ---------------- SEND MESSAGE ----------------
   void _sendMessage() async {
-    final text = _controller.text.trim();
-    if (text.isEmpty || widget.chatId == null) return;
+    // Use a default message if the input is empty
+    final text = _controller.text.trim().isEmpty
+        ? "Sent a message" // default text if null/empty
+        : _controller.text.trim();
 
     final newMessage = ChatMessage(
       message: text,
@@ -93,7 +97,7 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
 
     try {
       final ChatMessageResponse response = await ApiServices().sendChatMessage(
-        chatId: widget.chatId!,
+        chatId: 0, // backend handles null
         orderNo: widget.orderNo,
         message: text,
       );
@@ -106,7 +110,7 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
           if (index != -1) {
             _messages[index] = ChatMessage(
               id: serverMessage.id,
-              message: serverMessage.message ?? text,
+              message: serverMessage.message ?? text, // fallback to default
               senderType: serverMessage.senderType ?? widget.currentUserType,
               senderCode: serverMessage.senderCode,
               attachmentUrl: serverMessage.attachmentUrl,
@@ -133,8 +137,6 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
 
   // ---------------- UPLOAD IMAGE ----------------
   void _uploadImage() async {
-    if (widget.chatId == null) return;
-
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -144,13 +146,12 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
 
       final File file = File(pickedFile.path);
 
-      // Optimistic UI
+      // Optimistic UI with a default message
       final newMessage = ChatMessage(
-        message: null,
+        message: "Sent an image", // default message
         senderType: widget.currentUserType,
         messageType: 'image',
         attachmentUrl: file.path,
-        // local preview
         createdAt: DateTime.now(),
       );
 
@@ -160,7 +161,7 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
 
       // Upload image to server
       final ChatMessageResponse response = await ApiServices().uploadChatImage(
-        chatId: widget.chatId!,
+        chatId: 0, // backend handles null
         orderNo: widget.orderNo,
         file: file,
       );
@@ -173,7 +174,7 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
           if (index != -1) {
             _messages[index] = ChatMessage(
               id: serverMessage.id,
-              message: serverMessage.message,
+              message: serverMessage.message ?? "Sent an image", // fallback
               senderType: serverMessage.senderType ?? widget.currentUserType,
               senderCode: serverMessage.senderCode,
               attachmentUrl: serverMessage.attachmentUrl,
@@ -432,14 +433,12 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
                     children: [
                       // Image button
                       InkWell(
-                        onTap: widget.chatId != null ? _uploadImage : null,
+                        onTap: _uploadImage, // always enabled
                         borderRadius: BorderRadius.circular(24),
                         child: Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: widget.chatId != null
-                                ? AppColors.primary
-                                : Colors.grey.shade400,
+                            color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -466,19 +465,16 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
                             filled: true,
                             fillColor: Colors.grey[200],
                           ),
-                          enabled: widget.chatId != null,
                         ),
                       ),
                       const SizedBox(width: 12),
                       InkWell(
-                        onTap: widget.chatId != null ? _sendMessage : null,
+                        onTap: _sendMessage, // always enabled
                         borderRadius: BorderRadius.circular(24),
                         child: Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: widget.chatId != null
-                                ? AppColors.primary
-                                : Colors.grey.shade400,
+                            color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(

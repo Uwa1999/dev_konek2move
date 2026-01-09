@@ -28,29 +28,48 @@ class OrderTextMessagesScreen extends StatelessWidget {
 
     return [
       {
-        "title": "Order Received ✅",
+        "title": "Natanggap ang Order ✅",
         "message":
-            "Hi $name,\n\nNatanggap na namin ang iyong order #$orderNo.\nTotal Amount: $totalAmount\nSalamat sa pagtitiwala sa Ottokonek!",
+            "Magandang araw, $name 👋\n\n"
+            "Natanggap na namin ang iyong order.\n\n"
+            "🧾 Order No: $orderNo\n"
+            "💰 Kabuuang Halaga: $totalAmount\n\n"
+            "Inihahanda na namin ang iyong mga item para sa delivery.\n\n"
+            "Maraming salamat sa iyong tiwala.\n\n"
+            "— OttoKonek Indogrosir",
       },
       {
-        "title": "Order Picked Up 🚚",
+        "title": "Nakuha na ang Order 🚚",
         "message":
-            "Hi $name,\n\nAng iyong order #$orderNo ay nakuha na ng aming rider at handa nang ihatid sa iyo.\nTotal Amount: $totalAmount\nMaaari mong i-track ang delivery sa Ottokonek app.",
+            "Magandang araw, $name 👋\n\n"
+            "Nakuha na ng aming rider ang iyong order.\n\n"
+            "📦 Order No: $orderNo\n"
+            "💰 Kabuuang Halaga: $totalAmount\n\n"
+            "Ito ay ihahatid na sa iyong address sa lalong madaling panahon.\n\n"
+            "Mangyaring panatilihing bukas ang iyong linya para sa update.\n\n"
+            "— OttoKonek Indogrosir",
       },
       {
         "title": "Out for Delivery 🏠",
         "message":
-            "Hi $name,\n\nAng iyong order #$orderNo ay kasalukuyang nasa ruta papunta sa iyo.\nTotal Amount: $totalAmount\nIhanda ang pagtanggap ng package.",
+            "Magandang araw, $name 👋\n\n"
+            "Ang iyong order ay kasalukuyang nasa biyahe na papunta sa iyo.\n\n"
+            "📦 Order No: $orderNo\n"
+            "💰 Kabuuang Halaga: $totalAmount\n\n"
+            "Siguraduhing may tatanggap ng package.\n\n"
+            "Salamat sa iyong pasensya.\n\n"
+            "— OttoKonek Indogrosir",
       },
       {
-        "title": "Delivered 🎉",
+        "title": "Na-deliver na 🎉",
         "message":
-            "Hi $name,\n\nAng iyong order #$orderNo ay matagumpay nang naihatid.\nTotal Amount: $totalAmount\nSalamat sa paggamit ng Ottokonek! Sana ay nasiyahan ka sa aming serbisyo.",
-      },
-      {
-        "title": "Exclusive Promo 🌟",
-        "message":
-            "Hi $name,\n\nMay espesyal na promo para sa iyo! Bisitahin ang Ottokonek app at samantalahin ang eksklusibong diskwento.",
+            "Magandang araw, $name 👋\n\n"
+            "Matagumpay nang naihatid ang iyong order.\n\n"
+            "📦 Order No: $orderNo\n"
+            "💰 Kabuuang Halaga: $totalAmount\n\n"
+            "Umaasa kaming ikaw ay nasiyahan sa iyong order.\n"
+            "Maraming salamat sa pagpili sa amin.\n\n"
+            "— OttoKonek Indogrosir",
       },
     ];
   }
@@ -96,7 +115,7 @@ class OrderTextMessagesScreen extends StatelessWidget {
     final templates = getTemplates(customerName, orderNumber, amount);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: AppColors.surface,
@@ -114,58 +133,113 @@ class OrderTextMessagesScreen extends StatelessWidget {
             color: Colors.black,
           ),
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x14000000),
-                blurRadius: 10,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
-        ),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: templates.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final template = templates[index];
-          return Card(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+      body: Column(
+        children: [
+          /// MESSAGE LIST
+          Expanded(
+            child: ListView.separated(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                24 + MediaQuery.of(context).padding.bottom,
+              ),
+              itemCount: templates.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final template = templates[index];
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x12000000),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // TITLE + ICON
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.message,
+                              size: 18,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              template['title']!,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // MESSAGE PREVIEW
+                      Text(
+                        template['message']!,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black87,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      // SEND BUTTON
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton.icon(
+                          onPressed: phoneNumber.isNotEmpty
+                              ? () => _sendSMS(
+                                  phoneNumber,
+                                  template['message']!,
+                                  context,
+                                )
+                              : null,
+                          icon: const Icon(Icons.send, size: 16),
+                          label: const Text("Send SMS"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-            elevation: 2,
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              title: Text(
-                template['title']!,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  template['message']!,
-                  maxLines: 5,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              trailing: const Icon(Icons.send, color: AppColors.primary),
-              onTap: phoneNumber.isNotEmpty
-                  ? () => _sendSMS(phoneNumber, template['message']!, context)
-                  : null,
-            ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
