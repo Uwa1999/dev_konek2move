@@ -151,6 +151,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 pickupLng: widget.order.pickupLng!,
                 dropLat: widget.order.deliveryLat!,
                 dropLng: widget.order.deliveryLng!,
+                // pickupLabel: widget.order.pickupAddress!,
+                // dropLabel: widget.order.deliveryAddress!,
               ),
             ),
 
@@ -327,7 +329,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 8),
 
                       /// ---------- LOCATION UI ----------
@@ -427,6 +428,86 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               );
             },
           ),
+
+          /// ---------- FLOATING CALL & MESSAGE BAR ----------
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  /// CALL BUTTON
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () =>
+                          _callNumber(_safe(widget.order.customer?.phone)),
+                      icon: const Icon(Icons.call_rounded, size: 18),
+                      label: const Text(
+                        "Call Customer",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  /// MESSAGE BUTTON
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          SlideFadeRoute(
+                            page: OrderTextMessagesScreen(
+                              name: widget.order.customer!.name,
+                              contact: widget.order.driver!.phone.toString(),
+                              orderNo: widget.order.orderNo.toString(),
+                              amount: widget.order.totalAmount.toString(),
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.message_rounded, size: 18),
+                      label: const Text(
+                        "Text Message",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -442,101 +523,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       ),
       child: Column(
         children: [
+          _infoRow("ID", _safe(widget.order.customer?.id)),
+          const SizedBox(height: 8),
+          _infoRow("Supplier name", _safe(widget.order.supplierName)),
+          const SizedBox(height: 8),
           _infoRow("Created", _formatDate(widget.order.createdAt)),
           const SizedBox(height: 8),
           _infoRow("Customer", _safe(widget.order.customer?.name)),
           const SizedBox(height: 8),
           _infoRow("Contact", _safe(widget.order.customer?.phone)),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Call Button
-              Expanded(
-                child: Card(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  elevation: 3,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(24),
-                    onTap: () =>
-                        _callNumber(_safe(widget.order.customer?.phone)),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 8,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.call_rounded, color: AppColors.primary),
-                          SizedBox(width: 8),
-                          Text(
-                            'Call Customer',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 16),
-
-              // Message Button
-              Expanded(
-                child: Card(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  elevation: 3,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(24),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        SlideFadeRoute(
-                          page: OrderTextMessagesScreen(
-                            name: widget.order.customer!.name,
-                            contact: widget.order.driver!.phone.toString(),
-                            orderNo: widget.order.orderNo.toString(),
-                            amount: widget.order.totalAmount.toString(),
-                          ),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 8,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.message_rounded, color: AppColors.primary),
-                          SizedBox(width: 8),
-                          Text(
-                            'Text Message',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -555,7 +550,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
         _itemPrice("Item Count", _safe(widget.order.itemsCount)),
         const Divider(height: 32),
         _itemPrice(

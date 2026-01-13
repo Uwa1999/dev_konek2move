@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -17,7 +16,7 @@ import 'custom_snackbar.dart';
 class OrderCard extends StatefulWidget {
   final OrderRecord order;
   final Future<void> Function()? onRefresh;
-  const OrderCard({super.key, required this.order,this.onRefresh,});
+  const OrderCard({super.key, required this.order, this.onRefresh});
 
   @override
   State<OrderCard> createState() => _OrderCardState();
@@ -35,7 +34,6 @@ class _OrderCardState extends State<OrderCard> {
     super.initState();
     _warmLocation();
   }
-
 
   /// Warm GPS to reduce location delay
   Future<void> _warmLocation() async {
@@ -68,7 +66,7 @@ class _OrderCardState extends State<OrderCard> {
     if (widget.onRefresh != null) {
       await widget.onRefresh!();
     }
-}
+  }
   // ---------------- UI --------------------
 
   @override
@@ -113,25 +111,36 @@ class _OrderCardState extends State<OrderCard> {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight.withOpacity(.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   widget.order.status.toString(),
-                  style: const TextStyle(fontSize: 12, color: AppColors.primary),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ],
           ),
 
           const SizedBox(height: 14),
-          _infoRow('Created', date == null ? '-' : DateFormat("MMM d, yyyy - h:mm a").format(date)),
+          _infoRow('Supplier', widget.order.supplierName ?? ''),
+          _infoRow(
+            'Created',
+            date == null
+                ? '-'
+                : DateFormat("MMM d, yyyy - h:mm a").format(date),
+          ),
           _infoRow('Customer', widget.order.customer?.name ?? ''),
           _infoRow('Total Amount', '₱${widget.order.totalAmount ?? 0}'),
           const SizedBox(height: 18),
-
           // PICKUP & DROPOFF --------------------------
           IntrinsicHeight(
             child: Row(
@@ -139,7 +148,11 @@ class _OrderCardState extends State<OrderCard> {
               children: [
                 Column(
                   children: [
-                    const Icon(Icons.location_on, color: AppColors.primary, size: 20),
+                    const Icon(
+                      Icons.location_on,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
                     Expanded(
                       child: Container(
                         width: 1,
@@ -157,7 +170,7 @@ class _OrderCardState extends State<OrderCard> {
                     children: [
                       const SizedBox(height: 2),
                       Text(
-                        'Pickup: ${widget.order.pickupAddress ?? ""}',
+                        'Pickup:',
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
@@ -167,10 +180,13 @@ class _OrderCardState extends State<OrderCard> {
                       const SizedBox(height: 2),
                       Text(
                         widget.order.supplierAddress ?? '',
-                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'Drop off:',
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
@@ -181,7 +197,10 @@ class _OrderCardState extends State<OrderCard> {
                       const SizedBox(height: 2),
                       Text(
                         widget.order.deliveryAddress ?? '',
-                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -204,16 +223,22 @@ class _OrderCardState extends State<OrderCard> {
                         context: context,
                         isScrollControlled: true,
                         backgroundColor: Colors.transparent,
-                        builder: (_) => _buildRejectConfirmation(context, widget.order),
+                        builder: (_) =>
+                            _buildRejectConfirmation(context, widget.order),
                       );
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.primary),
                       foregroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Reject', style: TextStyle(fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      'Reject',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -224,18 +249,24 @@ class _OrderCardState extends State<OrderCard> {
                         context: context,
                         isScrollControlled: true,
                         backgroundColor: Colors.transparent,
-                        builder: (_) => _buildAcceptConfirmation(context, widget.order),
+                        builder: (_) =>
+                            _buildAcceptConfirmation(context, widget.order),
                       );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       elevation: 0,
                     ),
                     child: const Text(
                       'Accept Order',
-                      style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
@@ -254,28 +285,35 @@ class _OrderCardState extends State<OrderCard> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    SlideFadeRoute(page: OrderDetailsScreen(order: widget.order)),
+                    SlideFadeRoute(
+                      page: OrderDetailsScreen(order: widget.order),
+                    ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   elevation: 0,
                 ),
                 child: const Text(
-                  'Orders info',
-                  style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                  'Order Details',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ]
+          ],
         ],
       ),
     );
   }
 
- // ACCEPT MODAL -----------------------------------------------------
+  // ACCEPT MODAL -----------------------------------------------------
   Widget _buildAcceptConfirmation(BuildContext context, OrderRecord order) {
     final total = order.totalAmount ?? 0;
 
@@ -296,7 +334,6 @@ class _OrderCardState extends State<OrderCard> {
                 ),
                 child: Column(
                   children: [
-
                     /// ── Drag Handle ──
                     Container(
                       width: 42,
@@ -315,7 +352,6 @@ class _OrderCardState extends State<OrderCard> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-
                             const Text(
                               "Confirm order acceptance",
                               style: TextStyle(
@@ -349,7 +385,10 @@ class _OrderCardState extends State<OrderCard> {
                                 children: [
                                   _rowInfo("Order No", order.orderNo ?? "-"),
                                   const SizedBox(height: 6),
-                                  _rowInfo("Customer", order.customer?.name ?? "-"),
+                                  _rowInfo(
+                                    "Customer",
+                                    order.customer?.name ?? "-",
+                                  ),
                                   const SizedBox(height: 6),
                                   _rowInfo(
                                     "Total Amount",
@@ -397,44 +436,54 @@ class _OrderCardState extends State<OrderCard> {
                             onPressed: _isAccepting
                                 ? null
                                 : () async {
-                              setModalState(() => _isAccepting = true);
+                                    setModalState(() => _isAccepting = true);
 
-                              try {
-                                final pos = _cachedLocation ?? await _getCurrentLocation();
-                                final updatedOrder =
-                                widget.order.copyWith(status: "accepted");
+                                    try {
+                                      final pos =
+                                          _cachedLocation ??
+                                          await _getCurrentLocation();
+                                      final updatedOrder = widget.order
+                                          .copyWith(status: "accepted");
 
-                                if (!mounted) return;
+                                      if (!mounted) return;
 
-                                Navigator.pop(context);
+                                      Navigator.pop(context);
 
-                                showAppSnackBar(
-                                  context,
-                                  title: "Order Accepted",
-                                  message: "The order has been successfully accepted.",
-                                  isSuccess: true,
-                                  icon: Icons.check_circle_rounded,
-                                );
+                                      showAppSnackBar(
+                                        context,
+                                        title: "Order Accepted",
+                                        message:
+                                            "The order has been successfully accepted.",
+                                        isSuccess: true,
+                                        icon: Icons.check_circle_rounded,
+                                      );
 
-                                Navigator.pushReplacement(
-                                  context,
-                                  SlideFadeRoute(
-                                    page: OrderDetailsScreen(order: updatedOrder),
-                                  ),
-                                );
+                                      Navigator.pushReplacement(
+                                        context,
+                                        SlideFadeRoute(
+                                          page: OrderDetailsScreen(
+                                            order: updatedOrder,
+                                          ),
+                                        ),
+                                      );
 
-                                unawaited(_sendAcceptStatus(pos));
-                              } catch (e) {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(content: Text("$e")));
-                                }
-                              } finally {
-                                if (mounted) {
-                                  setModalState(() => _isAccepting = false);
-                                }
-                              }
-                            },
+                                      unawaited(_sendAcceptStatus(pos));
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(content: Text("$e")),
+                                        );
+                                      }
+                                    } finally {
+                                      if (mounted) {
+                                        setModalState(
+                                          () => _isAccepting = false,
+                                        );
+                                      }
+                                    }
+                                  },
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               backgroundColor: AppColors.primary,
@@ -445,21 +494,22 @@ class _OrderCardState extends State<OrderCard> {
                             ),
                             child: _isAccepting
                                 ? const SizedBox(
-                              height: 22,
-                              width: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
+                                    height: 22,
+                                    width: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
                                 : const Text(
-                              "Accept Order",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
+                                    "Accept Order",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
                       ],
@@ -474,7 +524,7 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
-// REJECT MODEL ------------------------------------------------------
+  // REJECT MODEL ------------------------------------------------------
   Widget _buildRejectConfirmation(BuildContext context, OrderRecord order) {
     String reason = "";
     bool isRejecting = false;
@@ -517,7 +567,7 @@ class _OrderCardState extends State<OrderCard> {
                       child: SingleChildScrollView(
                         controller: scrollController,
                         keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.onDrag,
+                            ScrollViewKeyboardDismissBehavior.onDrag,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -552,19 +602,24 @@ class _OrderCardState extends State<OrderCard> {
                                 contentPadding: const EdgeInsets.all(16),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
-                                  borderSide:
-                                  BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
-                                  borderSide:
-                                  BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 focusedBorder: const OutlineInputBorder(
-                                  borderRadius:
-                                  BorderRadius.all(Radius.circular(14)),
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(14),
+                                  ),
                                   borderSide: BorderSide(
-                                      color: AppColors.primary, width: 2),
+                                    color: AppColors.primary,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
                             ),
@@ -602,68 +657,76 @@ class _OrderCardState extends State<OrderCard> {
                             onPressed: isRejecting
                                 ? null
                                 : () async {
-                              if (reason.trim().isEmpty) return;
+                                    if (reason.trim().isEmpty) return;
 
-                              showCustomDialog(
-                                context: context,
-                                title: "Reject this order?",
-                                message:
-                                "Are you sure? This action cannot be undone.",
-                                icon: Icons.warning_rounded,
-                                color: Colors.red,
-                                buttonText: "Confirm Rejection",
-                                onButtonPressed: () async {
-                                  setModalState(() => isRejecting = true);
-                                  try {
-                                    final response =
-                                    await ApiServices().refuseOrder(
-                                      orderId: order.id!,
-                                      reason: reason.trim(),
-                                    );
-
-                                    if (!mounted) return;
-                                    Navigator.of(context,
-                                        rootNavigator: true)
-                                        .pop();
-                                    Navigator.pop(context);
-
-                                    setModalState(() => isRejecting = false);
-
-                                    showAppSnackBar(
-                                      context,
-                                      title: response.retCode == "200"
-                                          ? "Order Rejected"
-                                          : "Action Failed",
-                                      message: response.message ??
-                                          "Something went wrong",
-                                      isSuccess: response.retCode == "200",
-                                      icon: response.retCode == "200"
-                                          ? Icons.check_circle_rounded
-                                          : Icons.error_rounded,
-                                    );
-
-                                    if (response.retCode == "200") {
-                                      await _refreshParent();
-                                    }
-                                  } catch (_) {
-                                    if (!mounted) return;
-                                    Navigator.of(context,
-                                        rootNavigator: true)
-                                        .pop();
-                                    setModalState(() => isRejecting = false);
-
-                                    showAppSnackBar(
-                                      context,
-                                      title: "Something went wrong",
+                                    showCustomDialog(
+                                      context: context,
+                                      title: "Reject this order?",
                                       message:
-                                      "We couldn’t complete your request.",
-                                      isSuccess: false,
-                                      icon: Icons.error_outline_rounded,
+                                          "Are you sure? This action cannot be undone.",
+                                      icon: Icons.warning_rounded,
+                                      color: Colors.red,
+                                      buttonText: "Confirm Rejection",
+                                      onButtonPressed: () async {
+                                        setModalState(() => isRejecting = true);
+                                        try {
+                                          final response = await ApiServices()
+                                              .refuseOrder(
+                                                orderId: order.id!,
+                                                reason: reason.trim(),
+                                              );
+
+                                          if (!mounted) return;
+                                          Navigator.of(
+                                            context,
+                                            rootNavigator: true,
+                                          ).pop();
+                                          Navigator.pop(context);
+
+                                          setModalState(
+                                            () => isRejecting = false,
+                                          );
+
+                                          showAppSnackBar(
+                                            context,
+                                            title: response.retCode == "200"
+                                                ? "Order Rejected"
+                                                : "Action Failed",
+                                            message:
+                                                response.message ??
+                                                "Something went wrong",
+                                            isSuccess:
+                                                response.retCode == "200",
+                                            icon: response.retCode == "200"
+                                                ? Icons.check_circle_rounded
+                                                : Icons.error_rounded,
+                                          );
+
+                                          if (response.retCode == "200") {
+                                            await _refreshParent();
+                                          }
+                                        } catch (_) {
+                                          if (!mounted) return;
+                                          Navigator.of(
+                                            context,
+                                            rootNavigator: true,
+                                          ).pop();
+                                          setModalState(
+                                            () => isRejecting = false,
+                                          );
+
+                                          showAppSnackBar(
+                                            context,
+                                            title: "Something went wrong",
+                                            message:
+                                                "We couldn’t complete your request.",
+                                            isSuccess: false,
+                                            icon: Icons.error_outline_rounded,
+                                          );
+                                        }
+                                      },
                                     );
-                                  }
-                                },
-                              );
-                            },
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
                               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -693,9 +756,7 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
-
   //--------------- HELPERS --------------------
-
 
   /// Row used inside the card (top part)
   Widget _infoRow(String label, String value) {
@@ -704,10 +765,20 @@ class _OrderCardState extends State<OrderCard> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
           Text(
             value,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
           ),
         ],
       ),
@@ -716,15 +787,18 @@ class _OrderCardState extends State<OrderCard> {
 
   /// Row used in accept modal
   Widget _rowInfo(
-      String label,
-      String value, {
-        bool bold = false,
-        bool highlight = false,
-      }) {
+    String label,
+    String value, {
+    bool bold = false,
+    bool highlight = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        ),
         Text(
           value,
           style: TextStyle(
@@ -748,14 +822,18 @@ class _OrderCardState extends State<OrderCard> {
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) throw Exception("Location permission denied");
+      if (permission == LocationPermission.denied)
+        throw Exception("Location permission denied");
     }
 
     if (permission == LocationPermission.deniedForever) {
-      throw Exception("Location permission denied forever — enable in settings");
+      throw Exception(
+        "Location permission denied forever — enable in settings",
+      );
     }
 
-    return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
   }
 }
-

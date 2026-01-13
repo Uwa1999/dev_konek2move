@@ -146,6 +146,8 @@ class StaticOrderMap extends StatelessWidget {
     const apiKey = "AIzaSyA4eJv1jVmJWrTdOO6SOsEGirFKueKRg98";
     const size = "700x350";
     const zoom = 14;
+    const pickupLabel = "P";
+    const dropLabel = "D";
 
     const style =
         "style=feature:all%7Celement:geometry%7Ccolor:0xf6f6f6"
@@ -161,11 +163,10 @@ class StaticOrderMap extends StatelessWidget {
         "&style=feature:transit%7Cvisibility:off"
         "&style=feature:landscape.man_made%7Celement:geometry%7Ccolor:0xf2f2f2";
 
-
     return "https://maps.googleapis.com/maps/api/staticmap?"
         "size=$size&scale=2&zoom=$zoom"
-        "&markers=color:red%7Clabel:1%7C$pickupLat,$pickupLng"
-        "&markers=color:blue%7Clabel:2%7C$dropLat,$dropLng"
+        "&markers=color:red%7Clabel:$pickupLabel%7C$pickupLat,$pickupLng"
+        "&markers=color:blue%7Clabel:$dropLabel%7C$dropLat,$dropLng"
         "&$style&key=$apiKey";
   }
 
@@ -174,5 +175,3 @@ class StaticOrderMap extends StatelessWidget {
     return Image.network(_mapUrl, fit: BoxFit.cover);
   }
 }
-
-

@@ -28,47 +28,48 @@ class OrderTextMessagesScreen extends StatelessWidget {
 
     return [
       {
-        "title": "Natanggap ang Order ✅",
+        "title": "Order Confirmed",
         "message":
-            "Magandang araw, $name 👋\n\n"
-            "Natanggap na namin ang iyong order.\n\n"
-            "🧾 Order No: $orderNo\n"
-            "💰 Kabuuang Halaga: $totalAmount\n\n"
-            "Inihahanda na namin ang iyong mga item para sa delivery.\n\n"
-            "Maraming salamat sa iyong tiwala.\n\n"
+            "Good day, $name.\n\n"
+            "We have successfully received your order.\n\n"
+            "Order Number: $orderNo\n"
+            "Total Amount: $totalAmount\n\n"
+            "Your items are currently being prepared for dispatch. "
+            "We will notify you once your order is ready for delivery.\n\n"
+            "Thank you for shopping with us.\n\n"
             "— OttoKonek Indogrosir",
       },
       {
-        "title": "Nakuha na ang Order 🚚",
+        "title": "Order Picked Up",
         "message":
-            "Magandang araw, $name 👋\n\n"
-            "Nakuha na ng aming rider ang iyong order.\n\n"
-            "📦 Order No: $orderNo\n"
-            "💰 Kabuuang Halaga: $totalAmount\n\n"
-            "Ito ay ihahatid na sa iyong address sa lalong madaling panahon.\n\n"
-            "Mangyaring panatilihing bukas ang iyong linya para sa update.\n\n"
+            "Good day, $name.\n\n"
+            "Your order has been picked up by our delivery partner.\n\n"
+            "Order Number: $orderNo\n"
+            "Total Amount: $totalAmount\n\n"
+            "Your package is now on its way to your delivery address. "
+            "Please keep your phone available for any delivery updates.\n\n"
             "— OttoKonek Indogrosir",
       },
       {
-        "title": "Out for Delivery 🏠",
+        "title": "Out for Delivery",
         "message":
-            "Magandang araw, $name 👋\n\n"
-            "Ang iyong order ay kasalukuyang nasa biyahe na papunta sa iyo.\n\n"
-            "📦 Order No: $orderNo\n"
-            "💰 Kabuuang Halaga: $totalAmount\n\n"
-            "Siguraduhing may tatanggap ng package.\n\n"
-            "Salamat sa iyong pasensya.\n\n"
+            "Good day, $name.\n\n"
+            "Your order is now out for delivery and will arrive soon.\n\n"
+            "Order Number: $orderNo\n"
+            "Total Amount: $totalAmount\n\n"
+            "Please ensure that someone is available to receive the package.\n\n"
+            "Thank you for your patience.\n\n"
             "— OttoKonek Indogrosir",
       },
       {
-        "title": "Na-deliver na 🎉",
+        "title": "Order Delivered",
         "message":
-            "Magandang araw, $name 👋\n\n"
-            "Matagumpay nang naihatid ang iyong order.\n\n"
-            "📦 Order No: $orderNo\n"
-            "💰 Kabuuang Halaga: $totalAmount\n\n"
-            "Umaasa kaming ikaw ay nasiyahan sa iyong order.\n"
-            "Maraming salamat sa pagpili sa amin.\n\n"
+            "Good day, $name.\n\n"
+            "We are pleased to inform you that your order has been successfully delivered.\n\n"
+            "Order Number: $orderNo\n"
+            "Total Amount: $totalAmount\n\n"
+            "We hope you are satisfied with your purchase. "
+            "Thank you for choosing OttoKonek Indogrosir.\n\n"
             "— OttoKonek Indogrosir",
       },
     ];
