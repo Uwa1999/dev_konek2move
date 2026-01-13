@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:konek2move/services/api_services.dart';
@@ -67,6 +68,47 @@ class _OrderCardState extends State<OrderCard> {
       await widget.onRefresh!();
     }
   }
+
+  /// Location fetcher
+  Future<Position> _getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) throw Exception("Location services disabled");
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied)
+        throw Exception("Location permission denied");
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception(
+        "Location permission denied forever — enable in settings",
+      );
+    }
+
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+  }
+
+  void _copyLocation(BuildContext context, String text) {
+    if (text.trim().isEmpty) return;
+
+    Clipboard.setData(ClipboardData(text: text));
+
+    showAppSnackBar(
+      context,
+      title: 'Copied',
+      message: 'Location copied to clipboard',
+      isSuccess: true,
+      icon: Icons.copy_rounded,
+    );
+  }
+
   // ---------------- UI --------------------
 
   @override
@@ -169,24 +211,49 @@ class _OrderCardState extends State<OrderCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 2),
-                      Text(
+
+                      /// PICKUP
+                      const Text(
                         'Pickup:',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                           color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        widget.order.supplierAddress ?? '',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                        ),
+
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.order.supplierAddress ?? '',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          InkWell(
+                            onTap: () => _copyLocation(
+                              context,
+                              widget.order.supplierAddress ?? '',
+                            ),
+                            child: const Icon(
+                              Icons.copy,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
+
                       const SizedBox(height: 16),
-                      Text(
+
+                      /// DROP OFF
+                      const Text(
                         'Drop off:',
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
@@ -195,12 +262,32 @@ class _OrderCardState extends State<OrderCard> {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        widget.order.deliveryAddress ?? '',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                        ),
+
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.order.deliveryAddress ?? '',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          InkWell(
+                            onTap: () => _copyLocation(
+                              context,
+                              widget.order.deliveryAddress ?? '',
+                            ),
+                            child: const Icon(
+                              Icons.copy,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -808,32 +895,6 @@ class _OrderCardState extends State<OrderCard> {
           ),
         ),
       ],
-    );
-  }
-
-  /// Location fetcher
-  Future<Position> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) throw Exception("Location services disabled");
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied)
-        throw Exception("Location permission denied");
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      throw Exception(
-        "Location permission denied forever — enable in settings",
-      );
-    }
-
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
     );
   }
 }
