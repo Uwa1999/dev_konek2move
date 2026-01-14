@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:konek2move/services/api_services.dart';
@@ -45,7 +46,7 @@ class _MainScreenState extends State<MainScreen> {
   static const int _maxSseRetries = 5;
 
   final _pages = const [
-    HomeScreen(),
+    // HomeScreen(),
     OrderScreen(),
     MapScreen(),
     ProfileScreen(),
@@ -585,9 +586,9 @@ class _HomeAppBarState extends State<_HomeAppBar> {
       title: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 20,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=12'),
+            backgroundImage: AssetImage('assets/images/konek2move.png'),
           ),
           const SizedBox(width: 10),
           const Icon(Icons.location_on, color: AppColors.primary, size: 18),
@@ -598,7 +599,7 @@ class _HomeAppBarState extends State<_HomeAppBar> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Welcome, ${widget.firstName} !",
+                  "Rider, ${widget.firstName}",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -695,7 +696,7 @@ class _HomeAppBarState extends State<_HomeAppBar> {
             clipBehavior: Clip.none,
             children: [
               const Icon(
-                Icons.notifications_none,
+                CupertinoIcons.bell_fill,
                 size: 24,
                 color: AppColors.primary,
               ),
@@ -765,10 +766,10 @@ class _BottomNav extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _item(Icons.home_outlined, 'Home', 0),
-              _item(Icons.local_shipping_outlined, 'Orders', 1),
-              _item(Icons.pin_drop_outlined, 'Location', 2),
-              _item(Icons.person_outline, 'Profile', 3),
+              // _item(CupertinoIcons.house_fill, 'Home', 0),
+              _item(CupertinoIcons.car_fill, 'Orders', 0),
+              _item(CupertinoIcons.location_fill, 'Location', 1),
+              _item(CupertinoIcons.person_fill, 'Profile', 2),
             ],
           ),
         ),

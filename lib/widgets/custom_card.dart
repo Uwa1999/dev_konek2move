@@ -99,14 +99,6 @@ class _OrderCardState extends State<OrderCard> {
     if (text.trim().isEmpty) return;
 
     Clipboard.setData(ClipboardData(text: text));
-
-    showAppSnackBar(
-      context,
-      title: 'Copied',
-      message: 'Location copied to clipboard',
-      isSuccess: true,
-      icon: Icons.copy_rounded,
-    );
   }
 
   // ---------------- UI --------------------
@@ -116,286 +108,284 @@ class _OrderCardState extends State<OrderCard> {
     final date = DateTime.tryParse(widget.order.createdAt ?? "");
     final status = (widget.order.status ?? '').toLowerCase();
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(.03),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // HEADER -----------------------------------
-          Row(
-            children: [
-              RichText(
-                text: TextSpan(
-                  text: 'Order No: ',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: widget.order.orderNo ?? '',
-                      style: const TextStyle(color: AppColors.primary),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withOpacity(.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  widget.order.status.toString(),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-          _infoRow('Supplier', widget.order.supplierName ?? ''),
-          _infoRow(
-            'Created',
-            date == null
-                ? '-'
-                : DateFormat("MMM d, yyyy - h:mm a").format(date),
-          ),
-          _infoRow('Customer', widget.order.customer?.name ?? ''),
-          _infoRow('Total Amount', '₱${widget.order.totalAmount ?? 0}'),
-          const SizedBox(height: 18),
-          // PICKUP & DROPOFF --------------------------
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      color: Colors.white,
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // HEADER -----------------------------------
+            Row(
               children: [
-                Column(
-                  children: [
-                    const Icon(
-                      Icons.location_on,
-                      color: AppColors.primary,
-                      size: 20,
+                RichText(
+                  text: TextSpan(
+                    text: 'Order No: ',
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
-                    Expanded(
-                      child: Container(
-                        width: 1,
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        child: CustomPaint(painter: DashedLinePainter()),
-                      ),
-                    ),
-                    const Icon(Icons.flag, color: AppColors.primary, size: 20),
-                  ],
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 2),
-
-                      /// PICKUP
-                      const Text(
-                        'Pickup:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              widget.order.supplierAddress ?? '',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          InkWell(
-                            onTap: () => _copyLocation(
-                              context,
-                              widget.order.supplierAddress ?? '',
-                            ),
-                            child: const Icon(
-                              Icons.copy,
-                              size: 16,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      /// DROP OFF
-                      const Text(
-                        'Drop off:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              widget.order.deliveryAddress ?? '',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          InkWell(
-                            onTap: () => _copyLocation(
-                              context,
-                              widget.order.deliveryAddress ?? '',
-                            ),
-                            child: const Icon(
-                              Icons.copy,
-                              size: 16,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
+                      TextSpan(
+                        text: widget.order.orderNo ?? '',
+                        style: const TextStyle(color: AppColors.primary),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 18),
-
-          // ACTION BUTTONS ----------------------------
-          if (status == 'assigned') ...[
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) =>
-                            _buildRejectConfirmation(context, widget.order),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.primary),
-                      foregroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: const Text(
-                      'Reject',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 5,
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) =>
-                            _buildAcceptConfirmation(context, widget.order),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Accept Order',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight.withOpacity(.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    widget.order.status.toString(),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
               ],
             ),
-          ]
-          // WHEN ALREADY ACCEPTED OR DELIVERY PROGRESS
-          else if (status == 'accepted' ||
-              status == 'at_pickup' ||
-              status == 'picked_up' ||
-              status == 'en_route') ...[
+
+            const SizedBox(height: 14),
+            _infoRow('Supplier', widget.order.supplierName ?? ''),
+            _infoRow(
+              'Created',
+              date == null
+                  ? '-'
+                  : DateFormat("MMM d, yyyy - h:mm a").format(date),
+            ),
+            _infoRow('Customer', widget.order.customer?.name ?? ''),
+            _infoRow('Total Amount', '₱${widget.order.totalAmount ?? 0}'),
             const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    SlideFadeRoute(
-                      page: OrderDetailsScreen(order: widget.order),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+            // PICKUP & DROPOFF --------------------------
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      Expanded(
+                        child: Container(
+                          width: 1,
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          child: CustomPaint(painter: DashedLinePainter()),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.flag,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                    ],
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Order Details',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 2),
+
+                        /// PICKUP
+                        const Text(
+                          'Pickup:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                widget.order.supplierAddress ?? '',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            InkWell(
+                              onTap: () => _copyLocation(
+                                context,
+                                widget.order.supplierAddress ?? '',
+                              ),
+                              child: const Icon(
+                                Icons.copy,
+                                size: 16,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        /// DROP OFF
+                        const Text(
+                          'Drop off:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                widget.order.deliveryAddress ?? '',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            InkWell(
+                              onTap: () => _copyLocation(
+                                context,
+                                widget.order.deliveryAddress ?? '',
+                              ),
+                              child: const Icon(
+                                Icons.copy,
+                                size: 16,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            // ACTION BUTTONS ----------------------------
+            if (status == 'assigned') ...[
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) =>
+                              _buildRejectConfirmation(context, widget.order),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primary),
+                        foregroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text(
+                        'Reject',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) =>
+                              _buildAcceptConfirmation(context, widget.order),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Accept Order',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ]
+            // WHEN ALREADY ACCEPTED OR DELIVERY PROGRESS
+            else if (status == 'accepted' ||
+                status == 'at_pickup' ||
+                status == 'picked_up' ||
+                status == 'en_route') ...[
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      SlideFadeRoute(
+                        page: OrderDetailsScreen(order: widget.order),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Order Details',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

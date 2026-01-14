@@ -58,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Row(
           children: [
             Expanded(

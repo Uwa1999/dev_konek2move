@@ -367,6 +367,48 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
+  Widget _buildSearchBarShimmer() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey.shade300,
+        highlightColor: Colors.grey.shade100,
+        child: Container(
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              _shimmerBox(size: 20), // search icon
+              const SizedBox(width: 10),
+              Expanded(
+                child: _shimmerBox(height: 14), // input placeholder
+              ),
+              const SizedBox(width: 12),
+              _shimmerBox(size: 18), // clear icon
+              const SizedBox(width: 10),
+              _shimmerBox(size: 18), // filter icon
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _shimmerBox({double? width, double? height, double? size}) {
+    return Container(
+      width: size ?? width ?? double.infinity,
+      height: size ?? height ?? 14,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(6),
+      ),
+    );
+  }
+
   // =====================================================
   // UI — prevent bottom overflow
   // =====================================================
@@ -379,7 +421,10 @@ class _OrderScreenState extends State<OrderScreen> {
         bottom: true,
         child: Column(
           children: [
-            _buildSearchBar(),
+            if (_loading)
+              _buildSearchBarShimmer()
+            else if (_orders.isNotEmpty)
+              _buildSearchBar(),
 
             Expanded(
               child: RefreshIndicator(
@@ -406,7 +451,7 @@ class _OrderScreenState extends State<OrderScreen> {
                                   width: 160,
                                   height: 160,
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
+                                    color: Colors.grey.shade200,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: const Icon(
@@ -446,7 +491,7 @@ class _OrderScreenState extends State<OrderScreen> {
                         ],
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12 + 80),
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12 + 12),
                         // ^ padding bottom prevents overflow under NavBar
                         itemCount: _orders.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 14),

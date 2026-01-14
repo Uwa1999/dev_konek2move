@@ -28,6 +28,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool _obscure = true;
   bool _loading = false;
   bool _showBiometric = false;
+  bool _hasAccount = false;
   bool _biometricInProgress = false;
 
   late AnimationController _controller;
@@ -65,9 +66,13 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _initPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool("biometric_enabled") ?? false;
+    final hasAccount = prefs.getBool("has_account") ?? false;
 
     if (!mounted) return;
-    setState(() => _showBiometric = enabled);
+    setState(() {
+      _showBiometric = enabled;
+      _hasAccount = hasAccount;
+    });
 
     if (!enabled) return;
 
@@ -147,8 +152,6 @@ class _LoginScreenState extends State<LoginScreen>
           false,
         );
       }
-    } catch (_) {
-      _showCustomDialog("Unable to use biometric login right now.", false);
     } finally {
       _biometricInProgress = false;
       if (mounted) setState(() => _loading = false);
@@ -247,6 +250,7 @@ class _LoginScreenState extends State<LoginScreen>
       response.data!.driver!.barangayCode!,
     );
     await prefs.setString("user_type", response.data!.driver!.userType!);
+    await prefs.setBool("has_account", true);
   }
 
   /// SHOW CUSTOM DIALOG
@@ -290,7 +294,7 @@ class _LoginScreenState extends State<LoginScreen>
           SlideTransition(
             position: _containerSlide,
             child: Container(
-              height: size.height * 0.75,
+              height: size.height * 0.72,
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               decoration: const BoxDecoration(
@@ -326,7 +330,7 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                       const SizedBox(height: 28),
                       CustomInputField(
-                        label: "Email Address",
+                        label: "Email",
                         hint: "Enter your email address",
                         controller: _email,
                         keyboardType: TextInputType.emailAddress,
@@ -412,34 +416,36 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      Center(
-                        child: Text.rich(
-                          TextSpan(
-                            text: "Don't have an account? ",
-                            style: const TextStyle(color: Colors.black54),
-                            children: [
-                              TextSpan(
-                                text: "Register now",
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
+                      if (!_hasAccount && !_showBiometric)
+                        const SizedBox(height: 24),
+                      if (!_hasAccount && !_showBiometric)
+                        Center(
+                          child: Text.rich(
+                            TextSpan(
+                              text: "Don't have an account? ",
+                              style: const TextStyle(color: Colors.black54),
+                              children: [
+                                TextSpan(
+                                  text: "Register now",
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        SlideFadeRoute(
+                                          page: const TermsAndConditionScreen(),
+                                        ),
+                                      );
+                                    },
                                 ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      SlideFadeRoute(
-                                        page: const TermsAndConditionScreen(),
-                                      ),
-                                    );
-                                  },
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      if (_showBiometric) const SizedBox(height: 28),
+                      if (_showBiometric) const SizedBox(height: 8),
                       if (_showBiometric)
                         Row(
                           children: [
@@ -455,7 +461,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                           ],
                         ),
-                      if (_showBiometric) const SizedBox(height: 12),
+                      if (_showBiometric) const SizedBox(height: 8),
                       if (_showBiometric)
                         SizedBox(
                           height: 52,
@@ -493,6 +499,18 @@ class _LoginScreenState extends State<LoginScreen>
                     ],
                   ),
                 ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Text(
+                '© 2026 FDS Asya Philippines Inc. | FDSAP.',
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey),
               ),
             ),
           ),

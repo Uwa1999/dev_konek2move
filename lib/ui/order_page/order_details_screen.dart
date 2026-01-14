@@ -1,5 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:konek2move/services/api_services.dart';
 import 'package:konek2move/services/model_services.dart';
@@ -108,6 +109,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
+  void _copyLocation(BuildContext context, String text) {
+    if (text.trim().isEmpty) return;
+
+    Clipboard.setData(ClipboardData(text: text));
+  }
+
   String _safe(value) => (value == null || value.toString().trim().isEmpty)
       ? "-"
       : value.toString();
@@ -164,7 +171,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  SlideFadeRoute(page: MainScreen(index: 1)),
+                  SlideFadeRoute(page: MainScreen(index: 0)),
                 );
               },
               child: Container(
@@ -382,12 +389,30 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 2),
-                                  Text(
-                                    _safe(widget.order.pickupAddress),
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.textSecondary,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _safe(widget.order.pickupAddress),
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      InkWell(
+                                        onTap: () => _copyLocation(
+                                          context,
+                                          widget.order.pickupAddress ?? '',
+                                        ),
+                                        child: const Icon(
+                                          Icons.copy,
+                                          size: 16,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(height: 20),
                                   const Text(
@@ -398,12 +423,30 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 2),
-                                  Text(
-                                    _safe(widget.order.deliveryAddress),
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.textSecondary,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _safe(widget.order.deliveryAddress),
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      InkWell(
+                                        onTap: () => _copyLocation(
+                                          context,
+                                          widget.order.deliveryAddress ?? '',
+                                        ),
+                                        child: const Icon(
+                                          Icons.copy,
+                                          size: 16,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -438,7 +481,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(50),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.15),

@@ -171,7 +171,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
           onPressed: () => Navigator.pushReplacement(
             context,
-            SlideFadeRoute(page: const MainScreen(index: 3)),
+            SlideFadeRoute(page: const MainScreen(index: 2)),
           ),
         ),
         centerTitle: true,

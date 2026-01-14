@@ -84,7 +84,7 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
         context: context,
         title: "Biometrics Enabled",
         message:
-        "You can now log in securely using your fingerprint or Face ID.",
+            "You can now log in securely using your fingerprint or Face ID.",
         icon: Icons.fingerprint,
         color: AppColors.primary,
         buttonText: "Got it!",
@@ -108,7 +108,6 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -121,7 +120,7 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
           onPressed: () => Navigator.pushReplacement(
             context,
-            SlideFadeRoute(page: const MainScreen(index: 3)),
+            SlideFadeRoute(page: const MainScreen(index: 2)),
           ),
         ),
         centerTitle: true,

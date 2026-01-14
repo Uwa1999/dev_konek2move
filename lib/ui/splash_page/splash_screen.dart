@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:konek2move/ui/landing_page/landing_screen.dart';
+import 'package:konek2move/ui/login_page/login_screen.dart';
 import 'package:konek2move/utils/app_colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -51,11 +53,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     _textSlide = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero)
         .animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.55, 1.0, curve: Curves.easeOutCubic),
-      ),
-    );
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.55, 1.0, curve: Curves.easeOutCubic),
+          ),
+        );
 
     _textFade = CurvedAnimation(
       parent: _controller,
@@ -65,17 +67,49 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     // 🚀 Production splash duration
-    Timer(const Duration(milliseconds: 3800), _goNext);
+    Timer(const Duration(milliseconds: 3800), _checkAuthStatus);
   }
 
-  void _goNext() {
+  // void _goNext() {
+  //   if (!mounted) return;
+  //   Navigator.pushReplacement(
+  //     context,
+  //     PageRouteBuilder(
+  //       transitionDuration: const Duration(milliseconds: 600),
+  //       pageBuilder: (_, __, ___) => const LandingScreen(),
+  //       transitionsBuilder: (_, animation, __, child) {
+  //         return FadeTransition(opacity: animation, child: child);
+  //       },
+  //     ),
+  //   );
+  // }
+  Future<void> _checkAuthStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final String? token = prefs.getString("jwt_token");
+    final bool hasAccount = prefs.getBool("has_account") ?? false;
+
     if (!mounted) return;
+
+    Widget nextScreen;
+
+    if (token != null && token.isNotEmpty) {
+      // ✅ Logged in
+      nextScreen = const LandingScreen();
+    } else if (hasAccount) {
+      // ❌ Has account but logged out
+      nextScreen = const LoginScreen();
+    } else {
+      // ❌ First-time user
+      nextScreen = const LandingScreen();
+    }
+
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 600),
-        pageBuilder: (_, __, ___) => const LandingScreen(),
-        transitionsBuilder: (_, animation, __, child) {
+        pageBuilder: (_, _, _) => nextScreen,
+        transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(opacity: animation, child: child);
         },
       ),

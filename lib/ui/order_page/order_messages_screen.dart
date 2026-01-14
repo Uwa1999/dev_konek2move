@@ -328,7 +328,7 @@ class _OrderMessagesScreenState extends State<OrderMessagesScreen> {
                                 width: 160,
                                 height: 160,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
+                                  color: Colors.grey.shade200,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: const Icon(
