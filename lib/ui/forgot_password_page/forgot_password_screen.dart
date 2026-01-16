@@ -105,7 +105,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.black,
+          ),
           onPressed: () => Navigator.pushReplacement(
             context,
             SlideFadeRoute(page: const LoginScreen()),

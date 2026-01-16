@@ -50,17 +50,19 @@ class _EmailScreenState extends State<EmailScreen> {
       if (!mounted) return;
 
       if (response.retCode == '200') {
-        Navigator.pushReplacement(context, SlideFadeRoute(page: EmailVerificationScreen(email: emailController.text.trim())));
+        Navigator.pushReplacement(
+          context,
+          SlideFadeRoute(
+            page: EmailVerificationScreen(email: emailController.text.trim()),
+          ),
+        );
       } else {
         _showDialogMessage(message: response.message!, isError: true);
       }
     } catch (e) {
       if (!mounted) return;
 
-      _showDialogMessage(
-        message: 'Failed to send OTP: $e',
-        isError: true,
-      );
+      _showDialogMessage(message: 'Failed to send OTP: $e', isError: true);
     } finally {
       if (mounted) {
         setState(() => isLoading = false);
@@ -69,10 +71,7 @@ class _EmailScreenState extends State<EmailScreen> {
   }
 
   /// --- CUSTOM DIALOG HANDLING ---
-  void _showDialogMessage({
-    required String message,
-    bool isError = false,
-  }) {
+  void _showDialogMessage({required String message, bool isError = false}) {
     final color = isError ? Colors.redAccent : Colors.green;
     final icon = isError ? Icons.error_outline : Icons.check_circle_outline;
 
@@ -105,8 +104,14 @@ class _EmailScreenState extends State<EmailScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () => Navigator.pushReplacement(context, SlideFadeRoute(page: const LandingScreen())),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.black,
+          ),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            SlideFadeRoute(page: const LandingScreen()),
+          ),
         ),
         centerTitle: true,
         title: const Text(
@@ -179,40 +184,39 @@ class _EmailScreenState extends State<EmailScreen> {
 
               child: isLoading
                   ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(width: 14),
-                  Text(
-                    "Sending...",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              )
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 14),
+                        Text(
+                          "Sending...",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    )
                   : const Text(
-                "Continue",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+                      "Continue",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ),
       ),
     );
   }
-
 }

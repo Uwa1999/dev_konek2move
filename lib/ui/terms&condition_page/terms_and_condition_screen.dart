@@ -26,7 +26,10 @@ class _TermsAndConditionScreenState extends State<TermsAndConditionScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.black,
+          ),
           onPressed: () => Navigator.pushReplacement(
             context,
             SlideFadeRoute(page: const LandingScreen()),

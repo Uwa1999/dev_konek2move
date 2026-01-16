@@ -143,7 +143,10 @@ class _NotificationPermissionScreenState
           backgroundColor: AppColors.surface,
           surfaceTintColor: Colors.transparent,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.black,
+            ),
             onPressed: () => Navigator.pushReplacement(
               context,
               SlideFadeRoute(page: const MainScreen(index: 2)),
@@ -194,7 +197,7 @@ class _NotificationPermissionScreenState
                       ),
                       textAlign: TextAlign.justify,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     NotificationSwitch(
                       isEnabled: _notificationsEnabled,
                       onToggle: _toggleNotifications,

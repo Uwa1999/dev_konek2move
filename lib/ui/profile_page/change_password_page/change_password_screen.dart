@@ -251,7 +251,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           backgroundColor: AppColors.surface,
           surfaceTintColor: Colors.transparent,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.black,
+            ),
             onPressed: () => Navigator.pushReplacement(
               context,
               SlideFadeRoute(page: const MainScreen(index: 2)),

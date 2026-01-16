@@ -143,7 +143,10 @@ class _RiderPersonalInfoScreenState extends State<RiderPersonalInfoScreen> {
             ),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.black,
+            ),
             onPressed: () => Navigator.pushReplacement(
               context,
               SlideFadeRoute(page: const MainScreen(index: 2)),
@@ -169,11 +172,11 @@ class _RiderPersonalInfoScreenState extends State<RiderPersonalInfoScreen> {
             Center(
               child: Column(
                 children: [
-                  const CircleAvatar(
-                    radius: 40,
-                    backgroundColor: AppColors.primary,
-                    child: Icon(Icons.person, size: 40, color: Colors.white),
+                  CircleAvatar(
+                    radius: 50,
+                    child: Image.asset("assets/images/konek2move-circle.png"),
                   ),
+
                   const SizedBox(height: 12),
                   Text(
                     fullName,
@@ -183,10 +186,19 @@ class _RiderPersonalInfoScreenState extends State<RiderPersonalInfoScreen> {
                       color: AppColors.textPrimary,
                     ),
                   ),
+                  Text(
+                    "( $userType )",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      fontStyle: FontStyle.italic,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 18),
             // ================= INFO CARD =================
             _buildInfoCard(),
             const SizedBox(height: 8),

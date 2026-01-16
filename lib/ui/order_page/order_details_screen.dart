@@ -187,7 +187,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.arrow_back_ios_new, size: 18),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
               ),
             ),
           ),
