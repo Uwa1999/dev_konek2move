@@ -8,20 +8,19 @@ import 'package:konek2move/services/api_services.dart';
 import 'package:konek2move/utils/app_colors.dart';
 
 Future<bool?> showProofOfDeliveryBottomSheet(
-    BuildContext context, {
-      required String orderNo,
-      required String customerName,
-    }) {
+  BuildContext context, {
+  required String orderNo,
+  required String customerName,
+}) {
   return showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => PODSheet(
-      orderNo: orderNo,
-      customerName: customerName,
-    ),
+    builder: (context) =>
+        PODSheet(orderNo: orderNo, customerName: customerName),
   );
 }
+
 class PODSheet extends StatefulWidget {
   final String orderNo;
   final String customerName;
@@ -80,6 +79,7 @@ class _PODSheetState extends State<PODSheet> {
       );
     }
   }
+
   // ───────────────── SIGNATURE ─────────────────
   Future<void> _showSignatureDialog() async {
     _signatureController.clear();
@@ -223,14 +223,6 @@ class _PODSheetState extends State<PODSheet> {
     }
   }
 
-
-
-
-
-
-
-
-
   // ───────────────── UI ─────────────────
   @override
   Widget build(BuildContext context) {
@@ -331,43 +323,42 @@ class _PODSheetState extends State<PODSheet> {
                     padding: EdgeInsets.zero,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(24),
                     ),
                   ),
                   child: _isSending
                       ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        "Submitting...",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  )
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              "Submitting...",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        )
                       : const Text(
-                    "Submit Proof of Delivery",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
+                          "Submit Proof of Delivery",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
-
             ],
           ),
         ),
@@ -382,10 +373,7 @@ class _PODSheetState extends State<PODSheet> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 13,
-            color: AppColors.textSecondary,
-          ),
+          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
         Text(
           value,
@@ -412,13 +400,18 @@ class _PODSheetState extends State<PODSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 15)),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text(subtitle,
-                  style:
-                  const TextStyle(fontSize: 13, color: Colors.grey)),
+              Text(
+                subtitle,
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
+              ),
             ],
           ),
         ),
@@ -434,34 +427,32 @@ class _PODSheetState extends State<PODSheet> {
             ),
             child: imageFile == null
                 ? Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isSignature
-                      ? Icons.edit_outlined
-                      : Icons.add_a_photo_outlined,
-                  color: Colors.grey,
-                  size: 28,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  isSignature ? "Sign" : "Upload",
-                  style: const TextStyle(
-                      color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            )
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isSignature
+                            ? Icons.edit_outlined
+                            : Icons.add_a_photo_outlined,
+                        color: Colors.grey,
+                        size: 28,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        isSignature ? "Sign" : "Upload",
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  )
                 : ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.file(imageFile, fit: BoxFit.cover),
-            ),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.file(imageFile, fit: BoxFit.cover),
+                  ),
           ),
         ),
       ],
     );
   }
 }
-
-
-
-

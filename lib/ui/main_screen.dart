@@ -202,6 +202,7 @@ class _MainScreenState extends State<MainScreen> {
   // 🔐 PERMISSIONS
   // =============================================================
   Future<void> _requestRequiredPermissions() async {
+    // --- 1. LOCATION PERMISSION ---
     LocationPermission locStatus = await Geolocator.checkPermission();
 
     if (locStatus == LocationPermission.denied ||
@@ -210,15 +211,36 @@ class _MainScreenState extends State<MainScreen> {
 
       if (locStatus == LocationPermission.denied) {
         _toast("Location permission required");
-      }
-      if (locStatus == LocationPermission.deniedForever) {
+        return; // stop flow until granted
+      } else if (locStatus == LocationPermission.deniedForever) {
         _toast("Enable location permission in settings");
+        return; // stop flow until user enables in settings
       }
     }
 
-    final camStatus = await Permission.camera.request();
+    // --- 2. CAMERA PERMISSION ---
+    final camStatus = await Permission.camera.status;
     if (!camStatus.isGranted) {
-      _toast("Camera permission required");
+      final result = await Permission.camera.request();
+      if (!result.isGranted) {
+        _toast("Camera permission required");
+        return; // stop flow
+      }
+    }
+
+    // --- 3. GALLERY / STORAGE PERMISSION ---
+    // Use photos for iOS, storage for Android
+    final photosStatus = await Permission.photos.status;
+    final storageStatus = await Permission.storage.status;
+
+    if (!photosStatus.isGranted && !storageStatus.isGranted) {
+      final results = await [Permission.photos, Permission.storage].request();
+
+      if (!(results[Permission.photos]?.isGranted ?? false) &&
+          !(results[Permission.storage]?.isGranted ?? false)) {
+        _toast("Gallery permission required");
+        return; // stop flow
+      }
     }
   }
 

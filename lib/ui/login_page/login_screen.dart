@@ -223,7 +223,22 @@ class _LoginScreenState extends State<LoginScreen>
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showCustomDialog("Error: $e", false);
+
+      // API error messages in user-friendly tone
+      String errorMessage = e.toString();
+      if (errorMessage.contains("Server is down")) {
+        _showCustomDialog(
+          "Oops! Our server is taking a break. Please try again in a few minutes.",
+          false,
+        );
+      } else if (errorMessage.contains("Request error")) {
+        _showCustomDialog(
+          "Something went wrong while logging in. Please try again.",
+          false,
+        );
+      } else {
+        _showCustomDialog("Unexpected error: $e", false);
+      }
     }
   }
 

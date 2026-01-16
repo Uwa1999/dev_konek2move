@@ -128,6 +128,7 @@
 //   ).then((_) => dialogClosed = true);
 // }
 import 'package:flutter/material.dart';
+
 Future<void> showCustomDialog({
   required BuildContext context,
   required String title,
@@ -156,7 +157,7 @@ Future<void> showCustomDialog({
 
           return Dialog(
             elevation: 10,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -255,21 +256,21 @@ Future<void> showCustomDialog({
                           },
                           child: (onButtonPressed != null && isLoading)
                               ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : Text(
-                            buttonText,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              fontSize: 15.5,
-                            ),
-                          ),
+                                  buttonText,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                    fontSize: 15.5,
+                                  ),
+                                ),
                         ),
                       ),
                     ],

@@ -128,7 +128,7 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     final url =
-        "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${Uri.encodeComponent(input)}&key=$kGoogleApiKey&types=geocode&language=en";
+        "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${Uri.encodeComponent(input)}&key=$kGoogleApiKey&types=geocode&language=en&components=country:PH";
 
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
@@ -180,39 +180,116 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  // Future<void> _createPolyline(LatLng origin, LatLng destination) async {
+  //   final url =
+  //       'https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&key=$kGoogleApiKey';
+  //
+  //   final response = await http.get(Uri.parse(url));
+  //   if (response.statusCode == 200) {
+  //     final data = json.decode(response.body);
+  //     if (data['routes'].isNotEmpty) {
+  //       final points = data['routes'][0]['overview_polyline']['points'];
+  //       final polylineCoordinates = _decodePolyline(points);
+  //
+  //       final legs = data['routes'][0]['legs'];
+  //       double distanceMeters = 0;
+  //       String etaText = "";
+  //       if (legs.isNotEmpty) {
+  //         distanceMeters = legs[0]['distance']['value'].toDouble();
+  //         etaText = legs[0]['duration']['text'];
+  //       }
+  //
+  //       setState(() {
+  //         _polylines.add(
+  //           Polyline(
+  //             polylineId: const PolylineId('route'),
+  //             points: polylineCoordinates,
+  //             color: AppColors.primary,
+  //             width: 5,
+  //           ),
+  //         );
+  //         _distanceKm = distanceMeters / 1000;
+  //         _eta = etaText;
+  //       });
+  //     }
+  //   }
+  // }
   Future<void> _createPolyline(LatLng origin, LatLng destination) async {
     final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&key=$kGoogleApiKey';
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&key=$kGoogleApiKey&departure_time=now';
 
     final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['routes'].isNotEmpty) {
-        final points = data['routes'][0]['overview_polyline']['points'];
-        final polylineCoordinates = _decodePolyline(points);
+    if (response.statusCode != 200) return;
 
-        final legs = data['routes'][0]['legs'];
-        double distanceMeters = 0;
-        String etaText = "";
-        if (legs.isNotEmpty) {
-          distanceMeters = legs[0]['distance']['value'].toDouble();
-          etaText = legs[0]['duration']['text'];
-        }
+    final data = json.decode(response.body);
+    if (data['routes'].isEmpty) return;
 
-        setState(() {
-          _polylines.add(
-            Polyline(
-              polylineId: const PolylineId('route'),
-              points: polylineCoordinates,
-              color: AppColors.primary,
-              width: 5,
-            ),
-          );
-          _distanceKm = distanceMeters / 1000;
-          _eta = etaText;
-        });
+    final route = data['routes'][0];
+    final legs = route['legs'];
+    if (legs.isEmpty) return;
+
+    final leg = legs[0];
+    final distanceMeters = leg['distance']['value'].toDouble();
+    final etaText = leg['duration_in_traffic'] != null
+        ? leg['duration_in_traffic']['text']
+        : leg['duration']['text'];
+
+    final List<LatLng> routePoints = _decodePolyline(
+      route['overview_polyline']['points'],
+    );
+
+    // Clear old polylines
+    _polylines.clear();
+
+    // 1️⃣ Add background line (white glow)
+    _polylines.add(
+      Polyline(
+        polylineId: const PolylineId('route_bg'),
+        points: routePoints,
+        color: Colors.white.withOpacity(0.6),
+        width: 12,
+        jointType: JointType.round,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
+        geodesic: true,
+      ),
+    );
+
+    // 2️⃣ Add foreground line with traffic-aware colors along steps
+    for (var step in leg['steps']) {
+      final stepPoints = _decodePolyline(step['polyline']['points']);
+      final duration = step['duration']['value']; // seconds
+      final distance = step['distance']['value']; // meters
+      final speed = distance / duration; // meters per second (rough)
+
+      // Assign traffic color
+      Color color;
+      if (speed < 4) {
+        color = Colors.red; // heavy traffic
+      } else if (speed < 8) {
+        color = Colors.orange; // moderate traffic
+      } else {
+        color = AppColors.primary; // free-flow
       }
+
+      _polylines.add(
+        Polyline(
+          polylineId: PolylineId(step['html_instructions']),
+          points: stepPoints,
+          color: color,
+          width: 6,
+          jointType: JointType.round,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+          geodesic: true,
+        ),
+      );
     }
+
+    setState(() {
+      _distanceKm = distanceMeters / 1000;
+      _eta = etaText;
+    });
   }
 
   List<LatLng> _decodePolyline(String encoded) {
@@ -355,6 +432,7 @@ class _MapScreenState extends State<MapScreen> {
                   zoomControlsEnabled: false,
                   markers: _markers,
                   polylines: _polylines,
+                  // trafficEnabled: true,
                 ),
           Positioned(
             top: 16,
@@ -365,7 +443,7 @@ class _MapScreenState extends State<MapScreen> {
                 Material(
                   color: AppColors.surface,
                   elevation: 5,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(24),
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(

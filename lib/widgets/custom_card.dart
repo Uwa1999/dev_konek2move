@@ -230,10 +230,18 @@ class _OrderCardState extends State<OrderCard> {
                                 context,
                                 widget.order.supplierAddress ?? '',
                               ),
-                              child: const Icon(
-                                Icons.copy,
-                                size: 16,
-                                color: AppColors.textSecondary,
+                              borderRadius: BorderRadius.circular(
+                                8,
+                              ), // nice ripple
+                              child: Padding(
+                                padding: const EdgeInsets.all(
+                                  8.0,
+                                ), // makes it ~32x32 touch area
+                                child: const Icon(
+                                  Icons.copy,
+                                  size: 16,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                             ),
                           ],
@@ -270,10 +278,18 @@ class _OrderCardState extends State<OrderCard> {
                                 context,
                                 widget.order.deliveryAddress ?? '',
                               ),
-                              child: const Icon(
-                                Icons.copy,
-                                size: 16,
-                                color: AppColors.textSecondary,
+                              borderRadius: BorderRadius.circular(
+                                8,
+                              ), // nice ripple
+                              child: Padding(
+                                padding: const EdgeInsets.all(
+                                  8.0,
+                                ), // makes touch target bigger (~32x32)
+                                child: const Icon(
+                                  Icons.copy,
+                                  size: 16,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                             ),
                           ],
@@ -307,7 +323,7 @@ class _OrderCardState extends State<OrderCard> {
                         side: const BorderSide(color: AppColors.primary),
                         foregroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(24),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
@@ -332,7 +348,7 @@ class _OrderCardState extends State<OrderCard> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(24),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         elevation: 0,
@@ -369,9 +385,9 @@ class _OrderCardState extends State<OrderCard> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                   ),
                   child: const Text(
@@ -492,7 +508,7 @@ class _OrderCardState extends State<OrderCard> {
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(24),
                               ),
                               side: BorderSide(
                                 color: AppColors.textSecondary.withOpacity(.35),
@@ -565,7 +581,7 @@ class _OrderCardState extends State<OrderCard> {
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               backgroundColor: AppColors.primary,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(24),
                               ),
                               elevation: 0,
                             ),
@@ -715,7 +731,7 @@ class _OrderCardState extends State<OrderCard> {
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(24),
                               ),
                               side: BorderSide(
                                 color: AppColors.textSecondary.withOpacity(.35),
@@ -808,7 +824,7 @@ class _OrderCardState extends State<OrderCard> {
                               backgroundColor: Colors.red,
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(24),
                               ),
                               elevation: 0,
                             ),

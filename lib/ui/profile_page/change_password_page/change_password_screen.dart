@@ -306,7 +306,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _emailController,
                 prefixIcon: Icons.email_outlined,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
               CustomInputField(
                 required: true,
@@ -321,7 +321,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 onSuffixTap: () =>
                     setState(() => _isPasswordVisible = !_isPasswordVisible),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
               CustomInputField(
                 required: true,

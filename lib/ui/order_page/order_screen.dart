@@ -44,9 +44,6 @@ class _OrderScreenState extends State<OrderScreen> {
   void initState() {
     super.initState();
     _fetchOrders();
-
-    // 🔎 Live search
-    _searchCtrl.addListener(_onSearchChanged);
   }
 
   @override
@@ -60,11 +57,16 @@ class _OrderScreenState extends State<OrderScreen> {
   // =====================================================
   // SEARCH HANDLER (debounce)
   // =====================================================
-  void _onSearchChanged() {
-    setState(() {}); // refresh clear icon
+  void _onSearchChanged(String value) {
+    setState(() {}); // refresh clear icon only
 
     _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+    _searchDebounce = Timer(const Duration(milliseconds: 700), () {
+      final query = value.trim();
+
+      // prevent spam & useless calls
+      if (query.isNotEmpty && query.length < 2) return;
+
       _fetchOrders();
     });
   }
@@ -183,7 +185,7 @@ class _OrderScreenState extends State<OrderScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: isFocused ? AppColors.primary : Colors.grey.shade300,
                 width: isFocused ? 1.6 : 1,
@@ -201,6 +203,14 @@ class _OrderScreenState extends State<OrderScreen> {
                   child: TextField(
                     controller: _searchCtrl,
                     focusNode: _searchFocus,
+                    onChanged: _onSearchChanged, // ✅ debounce here
+                    onSubmitted: (_) {
+                      _searchDebounce?.cancel();
+                      _fetchOrders(
+                        force: true,
+                      ); // immediate search on keyboard submit
+                    },
+                    textInputAction: TextInputAction.search,
                     decoration: const InputDecoration(
                       hintText: "Search order no...",
                       border: InputBorder.none,
@@ -211,6 +221,7 @@ class _OrderScreenState extends State<OrderScreen> {
                 if (_searchCtrl.text.isNotEmpty)
                   GestureDetector(
                     onTap: () {
+                      _searchDebounce?.cancel();
                       _searchCtrl.clear();
                       setState(() {});
                       _fetchOrders(force: true);
@@ -378,7 +389,7 @@ class _OrderScreenState extends State<OrderScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
             children: [
@@ -421,10 +432,7 @@ class _OrderScreenState extends State<OrderScreen> {
         bottom: true,
         child: Column(
           children: [
-            if (_loading)
-              _buildSearchBarShimmer()
-            else if (_orders.isNotEmpty)
-              _buildSearchBar(),
+            if (_loading) _buildSearchBarShimmer() else _buildSearchBar(),
 
             Expanded(
               child: RefreshIndicator(

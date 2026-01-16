@@ -297,10 +297,8 @@ class OrderStatusController extends ChangeNotifier {
   String _currentStatus;
   StreamSubscription<Position>? _positionStream;
 
-  OrderStatusController({
-    required this.order,
-    required this.onStatusChanged,
-  }) : _currentStatus = order.status ?? "";
+  OrderStatusController({required this.order, required this.onStatusChanged})
+    : _currentStatus = order.status ?? "";
 
   bool get isLoading => _isLoading;
   String get status => _currentStatus;
@@ -325,9 +323,9 @@ class OrderStatusController extends ChangeNotifier {
 
   bool get hasValidCoordinates =>
       order.pickupLat != null &&
-          order.pickupLng != null &&
-          order.deliveryLat != null &&
-          order.deliveryLng != null;
+      order.pickupLng != null &&
+      order.deliveryLat != null &&
+      order.deliveryLng != null;
 
   Future<Position?> _getLocation() async {
     bool enabled = await Geolocator.isLocationServiceEnabled();
@@ -401,27 +399,44 @@ class OrderStatusController extends ChangeNotifier {
     }
   }
 
-  void startArrivalMonitoring(BuildContext context, String target, String nextStatus) {
+  void startArrivalMonitoring(
+    BuildContext context,
+    String target,
+    String nextStatus,
+  ) {
     _positionStream?.cancel();
 
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 10),
-    ).listen((Position pos) async {
-      final tgtLat = target == "pickup" ? order.pickupLat : order.deliveryLat;
-      final tgtLng = target == "pickup" ? order.pickupLng : order.deliveryLng;
+    _positionStream =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10,
+          ),
+        ).listen((Position pos) async {
+          final tgtLat = target == "pickup"
+              ? order.pickupLat
+              : order.deliveryLat;
+          final tgtLng = target == "pickup"
+              ? order.pickupLng
+              : order.deliveryLng;
 
-      if (tgtLat == null || tgtLng == null) return;
+          if (tgtLat == null || tgtLng == null) return;
 
-      final dist = Geolocator.distanceBetween(pos.latitude, pos.longitude, tgtLat, tgtLng);
+          final dist = Geolocator.distanceBetween(
+            pos.latitude,
+            pos.longitude,
+            tgtLat,
+            tgtLng,
+          );
 
-      if (dist <= arrivalRadiusMeters) {
-        _positionStream?.cancel();
-        _positionStream = null;
-        if (context.mounted) {
-          await updateStatus(context, nextStatus);
-        }
-      }
-    });
+          if (dist <= arrivalRadiusMeters) {
+            _positionStream?.cancel();
+            _positionStream = null;
+            if (context.mounted) {
+              await updateStatus(context, nextStatus);
+            }
+          }
+        });
   }
 
   void stopArrivalMonitoring() {
@@ -483,12 +498,27 @@ class OrderStatusController extends ChangeNotifier {
             onPressed: _isLoading ? null : callback,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
             ),
             child: _isLoading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(
+                    label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
           ),
         );
       },
