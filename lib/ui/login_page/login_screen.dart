@@ -135,6 +135,13 @@ class _LoginScreenState extends State<LoginScreen>
       if (response.retCode == '201') {
         // ⚠️ Do NOT overwrite saved credentials here
         await _saveUserData(response);
+        showAppSnackBar(
+          icon: Icons.check_circle_rounded,
+          context,
+          title: "Success",
+          message: response.message ?? "Login successful",
+          isSuccess: true,
+        );
         Navigator.pushReplacement(
           context,
           SlideFadeRoute(page: const MainScreen()),
@@ -193,11 +200,9 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (!mounted) return;
       setState(() => _loading = false);
-
       if (response.retCode == '201') {
         // ⚡ Save credentials ONLY for normal login
         await _saveUserData(response, email: emailText, password: passwordText);
-
         showAppSnackBar(
           icon: Icons.check_circle_rounded,
           context,
@@ -236,6 +241,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     await prefs.setString("jwt_token", response.data!.jwtToken!);
     await prefs.setString("first_name", response.data!.driver!.firstName!);
+    await prefs.setString("full_name", response.data!.driver!.fullName!);
     await prefs.setString("driver_code", response.data!.driver!.driverCode!);
     await prefs.setBool("active", response.data!.driver!.active!);
     await prefs.setString("status", response.data!.driver!.status!);
@@ -251,6 +257,8 @@ class _LoginScreenState extends State<LoginScreen>
     );
     await prefs.setString("user_type", response.data!.driver!.userType!);
     await prefs.setBool("has_account", true);
+    await prefs.setBool("logged_in_before", true);
+    await prefs.setBool('is_logged_in', true);
   }
 
   /// SHOW CUSTOM DIALOG
@@ -276,17 +284,71 @@ class _LoginScreenState extends State<LoginScreen>
         children: [
           SafeArea(
             child: Align(
-              alignment: Alignment.topCenter,
+              alignment: Alignment
+                  .topCenter, // ensure horizontally centered at the top
               child: Padding(
-                padding: const EdgeInsets.only(top: 40),
-                child: Text(
-                  "Konek2Move",
-                  style: const TextStyle(
-                    fontSize: 36,
-                    letterSpacing: 1,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
+                padding: const EdgeInsets.only(top: 55), // adjust top spacing
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Text(
+                        "Konek2Move",
+                        style: TextStyle(
+                          fontSize: 32,
+                          letterSpacing: 1,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.local_shipping_rounded,
+                            size: 16,
+                            color: Colors.white.withOpacity(0.95),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Fast & Reliable Delivery",
+                            style: TextStyle(
+                              fontSize: 14,
+                              letterSpacing: 0.5,
+                              color: Colors.white.withOpacity(0.95),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -294,7 +356,7 @@ class _LoginScreenState extends State<LoginScreen>
           SlideTransition(
             position: _containerSlide,
             child: Container(
-              height: size.height * 0.72,
+              height: size.height * 0.73,
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               decoration: const BoxDecoration(

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:konek2move/services/api_services.dart';
+import 'package:konek2move/ui/login_page/login_screen.dart';
 import 'package:konek2move/ui/main_screen.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:konek2move/utils/navigation.dart';
+import 'package:konek2move/widgets/custom_dialog.dart';
 import 'package:konek2move/widgets/custom_input_fields.dart';
+import 'package:konek2move/widgets/custom_snackbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -160,96 +163,183 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        bool isLoggingOut = false;
+        if (!didPop) {
+          showCustomDialog(
+            context: context,
+            title: "Leave Delivery Mode?",
+            message:
+                "If you exit now, you may miss new delivery requests. Do you want to continue?",
+            icon: Icons.logout_rounded,
+            color: AppColors.secondaryRed,
+            buttonText: "Exit App",
+            cancelText: "Stay",
+            onButtonPressed: () async {
+              if (isLoggingOut) return;
+              isLoggingOut = true;
 
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            SlideFadeRoute(page: const MainScreen(index: 2)),
+              try {
+                final response = await ApiServices.logout();
+
+                if (!context.mounted) return;
+
+                Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pop(); // close dialog
+
+                if (response.retCode == "202") {
+                  final prefs = await SharedPreferences.getInstance();
+
+                  // ✅ Clear auth token only
+                  await prefs.remove("jwt_token");
+
+                  // ✅ Reset biometric session flag
+                  await prefs.setBool("biometric_in_progress", false);
+
+                  // ✅ Wait one frame before navigation
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      SlideFadeRoute(page: const LoginScreen()),
+                      (route) => false,
+                    );
+                  });
+
+                  showAppSnackBar(
+                    context,
+                    title: "Logged Out",
+                    message: response.message ?? "Successfully logged out",
+                    isSuccess: true,
+                    icon: Icons.check_circle_rounded,
+                  );
+                } else {
+                  showAppSnackBar(
+                    context,
+                    title: "Logout Failed",
+                    message: response.message ?? "Something went wrong",
+                    isSuccess: false,
+                    icon: Icons.error_rounded,
+                  );
+                }
+              } catch (e) {
+                if (!context.mounted) return;
+
+                Navigator.of(context, rootNavigator: true).pop();
+
+                showAppSnackBar(
+                  context,
+                  title: "Something went wrong",
+                  message: "We couldn’t complete your request.",
+                  isSuccess: false,
+                  icon: Icons.error_outline_rounded,
+                );
+              } finally {
+                isLoggingOut = false;
+              }
+            },
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: AppColors.surface,
+          surfaceTintColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              SlideFadeRoute(page: const MainScreen(index: 2)),
+            ),
+          ),
+          centerTitle: true,
+          title: const Text(
+            "Change Password",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
           ),
         ),
-        centerTitle: true,
-        title: const Text(
-          "Change Password",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x14000000),
-                blurRadius: 10,
-                offset: Offset(0, 1),
+
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Update your account password",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Please enter your new password. Make sure it is secure and easy for you to remember.",
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+                textAlign: TextAlign.justify,
+              ),
+              const SizedBox(height: 24),
+
+              CustomInputField(
+                label: "Email",
+                hint: "Enter your email",
+                controller: _emailController,
+                prefixIcon: Icons.email_outlined,
+              ),
+              const SizedBox(height: 16),
+
+              CustomInputField(
+                required: true,
+                label: "Password",
+                hint: "Enter your password",
+                controller: _passwordController,
+                obscure: !_isPasswordVisible,
+                prefixIcon: Icons.lock_outline,
+                suffixIcon: _isPasswordVisible
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                onSuffixTap: () =>
+                    setState(() => _isPasswordVisible = !_isPasswordVisible),
+              ),
+              const SizedBox(height: 16),
+
+              CustomInputField(
+                required: true,
+                label: "Confirm Password",
+                hint: "Re-enter your password",
+                controller: _confirmPasswordController,
+                obscure: !_isConfirmPasswordVisible,
+                prefixIcon: Icons.lock_outline,
+                suffixIcon: _isConfirmPasswordVisible
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                onSuffixTap: () => setState(
+                  () => _isConfirmPasswordVisible = !_isConfirmPasswordVisible,
+                ),
               ),
             ],
           ),
         ),
+
+        bottomNavigationBar: _buildBottomAction(context),
       ),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Please enter your new password. Make sure it is secure and easy for you to remember.",
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
-            ),
-            const SizedBox(height: 24),
-
-            CustomInputField(
-              label: "Email",
-              hint: "Enter your email",
-              controller: _emailController,
-              prefixIcon: Icons.email_outlined,
-            ),
-            const SizedBox(height: 16),
-
-            CustomInputField(
-              required: true,
-              label: "Password",
-              hint: "Enter your password",
-              controller: _passwordController,
-              obscure: !_isPasswordVisible,
-              prefixIcon: Icons.lock_outline,
-              suffixIcon: _isPasswordVisible
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              onSuffixTap: () =>
-                  setState(() => _isPasswordVisible = !_isPasswordVisible),
-            ),
-            const SizedBox(height: 16),
-
-            CustomInputField(
-              required: true,
-              label: "Confirm Password",
-              hint: "Re-enter your password",
-              controller: _confirmPasswordController,
-              obscure: !_isConfirmPasswordVisible,
-              prefixIcon: Icons.lock_outline,
-              suffixIcon: _isConfirmPasswordVisible
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              onSuffixTap: () => setState(
-                () => _isConfirmPasswordVisible = !_isConfirmPasswordVisible,
-              ),
-            ),
-          ],
-        ),
-      ),
-
-      bottomNavigationBar: _buildBottomAction(context),
     );
   }
 

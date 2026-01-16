@@ -15,7 +15,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'home_page/home_screen.dart';
 import 'order_page/order_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -28,6 +27,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   late int _index;
+  // String assignedStoreCode = '';
   String firstName = '';
   String status = '';
   int unreadCount = 0;
@@ -79,6 +79,7 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _loadFirstName() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
+      // assignedStoreCode = prefs.getString("first_name") ?? "";
       firstName = prefs.getString("first_name") ?? "";
       status = prefs.getString("status") ?? "";
     });
@@ -332,6 +333,7 @@ class _MainScreenState extends State<MainScreen> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: _HomeAppBar(
+          // assignedStoreCode: assignedStoreCode,
           firstName: firstName,
           status: status,
           unreadCount: unreadCount,
@@ -544,11 +546,13 @@ class _MainScreenState extends State<MainScreen> {
    HOME APP BAR
 ============================================================ */
 class _HomeAppBar extends StatefulWidget implements PreferredSizeWidget {
+  // final String assignedStoreCode;
   final String firstName;
   final String status;
   final int unreadCount;
 
   const _HomeAppBar({
+    // required this.assignedStoreCode,
     required this.firstName,
     required this.status,
     required this.unreadCount,
@@ -588,7 +592,7 @@ class _HomeAppBarState extends State<_HomeAppBar> {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundImage: AssetImage('assets/images/konek2move.png'),
+            backgroundImage: AssetImage('assets/images/konek2move-circle.png'),
           ),
           const SizedBox(width: 10),
           const Icon(Icons.location_on, color: AppColors.primary, size: 18),

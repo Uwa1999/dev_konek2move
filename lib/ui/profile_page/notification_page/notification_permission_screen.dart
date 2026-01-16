@@ -1,114 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:konek2move/services/api_services.dart';
 import 'package:konek2move/ui/login_page/login_screen.dart';
+import 'package:konek2move/ui/main_screen.dart';
+import 'package:konek2move/utils/navigation.dart';
 import 'package:konek2move/widgets/custom_dialog.dart';
 import 'package:konek2move/widgets/custom_snackbar.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:konek2move/ui/main_screen.dart';
 import 'package:konek2move/utils/app_colors.dart';
-import 'package:konek2move/utils/navigation.dart';
 
-class BiometricsScreen extends StatefulWidget {
-  const BiometricsScreen({super.key});
+class NotificationPermissionScreen extends StatefulWidget {
+  const NotificationPermissionScreen({super.key});
 
   @override
-  State<BiometricsScreen> createState() => _BiometricsScreenState();
+  State<NotificationPermissionScreen> createState() =>
+      _NotificationPermissionScreenState();
 }
 
-class _BiometricsScreenState extends State<BiometricsScreen> {
-  final LocalAuthentication _auth = LocalAuthentication();
-
-  bool _biometricsEnabled = false;
-  bool _isSupported = false;
+class _NotificationPermissionScreenState
+    extends State<NotificationPermissionScreen> {
+  bool _notificationsEnabled = false;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _initBiometricStatus();
+    _loadNotificationStatus();
   }
 
-  Future<void> _initBiometricStatus() async {
+  Future<void> _loadNotificationStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    final enabled = prefs.getBool('biometric_enabled') ?? false;
-
-    final canCheck = await _auth.canCheckBiometrics;
-    final available = await _auth.getAvailableBiometrics();
+    final enabled = prefs.getBool('notifications_enabled') ?? false;
 
     setState(() {
-      _biometricsEnabled = enabled;
-      _isSupported = canCheck && available.isNotEmpty;
+      _notificationsEnabled = enabled;
       _isLoading = false;
     });
   }
 
-  // Returns true if toggle succeeded
-  Future<bool> _toggleBiometrics(bool enable) async {
+  Future<void> _toggleNotifications(bool enable) async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications_enabled', enable);
 
-    if (enable) {
-      if (!_isSupported) {
-        await showCustomDialog(
-          context: context,
-          title: "Biometrics Not Supported",
-          message: "This device does not support biometric login.",
-          icon: Icons.error_outline,
-          color: Colors.redAccent,
-          buttonText: "Okay!",
-        );
-        return false;
-      }
+    setState(() {
+      _notificationsEnabled = enable;
+    });
 
-      bool authenticated = false;
-      try {
-        authenticated = await _auth.authenticate(
-          localizedReason: 'Confirm your identity to enable biometric login',
-        );
-      } catch (_) {
-        authenticated = false;
-      }
-
-      if (!authenticated) {
-        await showCustomDialog(
-          context: context,
-          title: "Authentication Failed",
-          message: "Biometric login remains disabled.",
-          icon: Icons.error_outline,
-          color: Colors.redAccent,
-          buttonText: "Okay!",
-        );
-        return false;
-      }
-
-      await prefs.setBool('biometric_enabled', true);
-
-      await showCustomDialog(
-        context: context,
-        title: "Biometrics Enabled",
-        message:
-            "You can now log in securely using your fingerprint or Face ID.",
-        icon: Icons.fingerprint,
-        color: AppColors.primary,
-        buttonText: "Got it!",
-      );
-
-      return true; // ✅ enable succeeded
-    } else {
-      // Disable without authentication
-      await prefs.setBool('biometric_enabled', false);
-
-      await showCustomDialog(
-        context: context,
-        title: "Biometrics Disabled",
-        message: "Biometric login has been turned off for this device.",
-        icon: Icons.lock_outline,
-        color: AppColors.primary,
-        buttonText: "Got it!",
-      );
-
-      return true; // ✅ disable ALSO succeeded
-    }
+    showAppSnackBar(
+      context,
+      title: "Coming Soon",
+      message: "This feature is currently under development. Stay tuned!",
+      isSuccess: false,
+      icon: Icons.info_outline_rounded,
+    );
   }
 
   @override
@@ -208,7 +151,7 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
           ),
           centerTitle: true,
           title: const Text(
-            "Biometric Login",
+            "Notification Permission",
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -236,7 +179,7 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Secure your account",
+                      "App Notifications",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -244,7 +187,7 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "Use your fingerprint or Face ID for faster and more secure access to your account. Your biometric data is never stored on our servers.",
+                      "Turn on notifications to stay updated on delivery requests, updates, and offers.",
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 15,
@@ -252,21 +195,10 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
                       textAlign: TextAlign.justify,
                     ),
                     const SizedBox(height: 32),
-                    BiometricSwitch(
-                      isEnabled: _biometricsEnabled,
-                      isSupported: _isSupported,
-                      onToggle: _toggleBiometrics,
+                    NotificationSwitch(
+                      isEnabled: _notificationsEnabled,
+                      onToggle: _toggleNotifications,
                     ),
-                    if (!_isSupported) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        "Biometric authentication is not supported on this device.",
-                        style: TextStyle(
-                          color: Colors.red.shade400,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -275,23 +207,21 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
   }
 }
 
-class BiometricSwitch extends StatefulWidget {
+class NotificationSwitch extends StatefulWidget {
   final bool isEnabled;
-  final bool isSupported;
-  final Future<bool> Function(bool) onToggle;
+  final Future<void> Function(bool) onToggle;
 
-  const BiometricSwitch({
+  const NotificationSwitch({
     super.key,
     required this.isEnabled,
-    required this.isSupported,
     required this.onToggle,
   });
 
   @override
-  State<BiometricSwitch> createState() => _BiometricSwitchState();
+  State<NotificationSwitch> createState() => _NotificationSwitchState();
 }
 
-class _BiometricSwitchState extends State<BiometricSwitch> {
+class _NotificationSwitchState extends State<NotificationSwitch> {
   late bool _switchValue;
 
   @override
@@ -301,7 +231,7 @@ class _BiometricSwitchState extends State<BiometricSwitch> {
   }
 
   @override
-  void didUpdateWidget(covariant BiometricSwitch oldWidget) {
+  void didUpdateWidget(covariant NotificationSwitch oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isEnabled != widget.isEnabled) {
       _switchValue = widget.isEnabled;
@@ -318,19 +248,19 @@ class _BiometricSwitchState extends State<BiometricSwitch> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.fingerprint, size: 32, color: AppColors.primary),
+          const Icon(Icons.notifications, size: 32, color: AppColors.primary),
           const SizedBox(width: 16),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Biometric Login",
+                  "App Notifications",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  "Enable fingerprint or Face ID",
+                  "Receive alerts for updates and requests",
                   style: TextStyle(fontSize: 13),
                 ),
               ],
@@ -339,12 +269,10 @@ class _BiometricSwitchState extends State<BiometricSwitch> {
           Switch(
             value: _switchValue,
             activeColor: AppColors.primary,
-            onChanged: widget.isSupported
-                ? (val) async {
-                    bool success = await widget.onToggle(val);
-                    setState(() => _switchValue = val && success);
-                  }
-                : null,
+            onChanged: (val) async {
+              await widget.onToggle(val);
+              setState(() => _switchValue = val);
+            },
           ),
         ],
       ),

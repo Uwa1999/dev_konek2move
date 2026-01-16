@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:konek2move/ui/home_page/home_screen.dart';
 import 'package:konek2move/ui/landing_page/landing_screen.dart';
 import 'package:konek2move/ui/login_page/login_screen.dart';
 import 'package:konek2move/utils/app_colors.dart';
@@ -70,48 +71,34 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(const Duration(milliseconds: 3800), _checkAuthStatus);
   }
 
-  // void _goNext() {
-  //   if (!mounted) return;
-  //   Navigator.pushReplacement(
-  //     context,
-  //     PageRouteBuilder(
-  //       transitionDuration: const Duration(milliseconds: 600),
-  //       pageBuilder: (_, __, ___) => const LandingScreen(),
-  //       transitionsBuilder: (_, animation, __, child) {
-  //         return FadeTransition(opacity: animation, child: child);
-  //       },
-  //     ),
-  //   );
-  // }
   Future<void> _checkAuthStatus() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final String? token = prefs.getString("jwt_token");
     final bool hasAccount = prefs.getBool("has_account") ?? false;
+    final bool loggedInBefore = prefs.getBool("logged_in_before") ?? false;
 
     if (!mounted) return;
 
     Widget nextScreen;
 
-    if (token != null && token.isNotEmpty) {
-      // ✅ Logged in
+    if (!hasAccount) {
+      // ✅ First time user
       nextScreen = const LandingScreen();
-    } else if (hasAccount) {
-      // ❌ Has account but logged out
-      nextScreen = const LoginScreen();
+    } else if (hasAccount && !loggedInBefore) {
+      // ✅ Has account but never logged in
+      nextScreen = const LandingScreen();
     } else {
-      // ❌ First-time user
-      nextScreen = const LandingScreen();
+      // ✅ Already logged in before
+      nextScreen = const LoginScreen();
     }
 
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 600),
-        pageBuilder: (_, _, _) => nextScreen,
-        transitionsBuilder: (_, animation, _, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
+        pageBuilder: (_, __, ___) => nextScreen,
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
   }

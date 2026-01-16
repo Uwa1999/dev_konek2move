@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:konek2move/services/api_services.dart';
 import 'package:konek2move/ui/login_page/login_screen.dart';
+import 'package:konek2move/ui/profile_page/account_info_page/account_info_screen.dart';
 import 'package:konek2move/ui/profile_page/biometrics_page/biometrics_screen.dart';
 import 'package:konek2move/ui/profile_page/change_password_page/change_password_screen.dart';
+import 'package:konek2move/ui/profile_page/notification_page/notification_permission_screen.dart';
 import 'package:konek2move/utils/app_colors.dart';
 import 'package:konek2move/utils/navigation.dart';
 import 'package:konek2move/widgets/custom_dialog.dart';
@@ -116,13 +118,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.person_outlined,
             title: "Personal information",
             onTap: () {
-              showAppSnackBar(
+              Navigator.pushReplacement(
                 context,
-                title: "Coming Soon",
-                message:
-                    "This feature is currently under development. Stay tuned!",
-                isSuccess: false,
-                icon: Icons.info_outline_rounded,
+                SlideFadeRoute(page: const RiderPersonalInfoScreen()),
               );
             },
           ),
@@ -142,13 +140,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.notifications_none_outlined,
             title: "Notifications",
             onTap: () {
-              showAppSnackBar(
+              Navigator.pushReplacement(
                 context,
-                title: "Coming Soon",
-                message:
-                    "This feature is currently under development. Stay tuned!",
-                isSuccess: false,
-                icon: Icons.info_outline_rounded,
+                SlideFadeRoute(page: const NotificationPermissionScreen()),
               );
             },
           ),
@@ -213,6 +207,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                       // ✅ Clear auth token only
                       await prefs.remove("jwt_token");
+
+                      // ✅ Mark user as logged out (CRITICAL)
+                      await prefs.setBool("is_logged_in", false);
+
+                      await prefs.setBool('logged_in_before', true);
 
                       // ✅ Reset biometric session flag
                       await prefs.setBool("biometric_in_progress", false);
